@@ -1,0 +1,8 @@
+README.txt
+pytwobodyorbit.py
+setup.py
+pytwobodyorbit.egg-info/PKG-INFO
+pytwobodyorbit.egg-info/SOURCES.txt
+pytwobodyorbit.egg-info/dependency_links.txt
+pytwobodyorbit.egg-info/requires.txt
+pytwobodyorbit.egg-info/top_level.txt
