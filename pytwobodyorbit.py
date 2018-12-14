@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Comutations about Kepler Orbits
+"""Comutations about two-body Orbits (v1.0.0)
 
-This module provide computations about Kepler orbits, including:
+This module provide computations about two-body orbits, including:
   Compute Keplerian orbital elements from position and velocity
   Provide seriese of points on orbital trajectory for visualization
   Predict position and velocity of the object for given time
-  Solve the Gauss problem  (From given two positions and flight duration 
+  Solve Lambert's problem  (From given two positions and flight duration 
   between them, solveGauss() computes initial and terminal velocity of 
   the object)
 
-@author: whiskie14142
+@author: Shushi Uetsuki/whiskie14142
 """
 
 import numpy as np
@@ -19,7 +19,7 @@ from scipy.optimize import bisect
 
   
 class TwoBodyOrbit:
-    """Class for the Kepler orbit of a celestial object
+    """Class for a two-body orbit of a celestial object
     
     """
     def timeFperi(self, ta):
@@ -342,14 +342,14 @@ class TwoBodyOrbit:
         return kepl
 
 def solveGauss(ipos, tpos, targett, mu, ccw=True):
-    """Solve the Gauss Problem
+    """Solve Lambert's Problem
     
-    From given initial position, terminal position, and flight duration, 
+    From given initial position, terminal position, and flight time, 
     compute initial velocity and terminal velocity.
     Args: ipos, tpos, targett, mu, ccw
         ipos: Initial position of the object (x,y,z) as Numpy array
         tpos: Terminal position of the object (x,y,z) as Numpy array
-        targett: Orbital duration
+        targett: Flight time
         mu: Gravitational parameter of the central body
         ccw: Flag for orbital direction. If True, counter clockwise
     Returns: ivel, tvel
@@ -357,7 +357,7 @@ def solveGauss(ipos, tpos, targett, mu, ccw=True):
         tvel: Terminal velocity of the object (xd,yd,zd) as Numpy array
     Exception:
         ValueError: When input data (ipos, tpos, targett) are incovenient,
-                    this function raises exception
+                    this function raises this exception
                     
         Origin of coordinates are position of the central body
     """
@@ -465,104 +465,4 @@ def solveGauss(ipos, tpos, targett, mu, ccw=True):
     
     return ivel, tvel
 
-def main():
-    """Main program for test and demonstration
-    
-    Run this module as main program, and try 100, 300, 60 for 
-    'Flight Duration' at first.  You may try other values also.
-    Additionally, you may change parameters in lines commented with '***'
-    
-    On the plotting window, you can rotate the image (left-button dragging),
-    and zoom (right-button dragging-up and dragging-down)
-    """
-    from mpl_toolkits.mplot3d import Axes3D
-    import matplotlib.pyplot as plt
-    
-    # Standard gravitational parameter for the Sun (Sol)
-    # With this parameter, lenght should be in meters,
-    # and time should be in seconds
-    mu = 1.32712440041e20
-    
-    # Create instance of TwoBodyOrbit
-    orbit = TwoBodyOrbit('object')
-    
-    # prepare plotting
-    plt.ion()                       # set pyplot to the interactive mode
-    fig=plt.figure(figsize=(11,11))
-    ax=fig.gca(projection='3d', aspect='equal')
-    ax.set_clip_on(True)
-    ax.set_xlim(-3.0e11, 3.0e11)
-    ax.set_ylim(-3.0e11, 3.0e11)
-    ax.set_zlim(-3.0e11, 3.0e11)
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    fig.tight_layout()
-    
-    ar = None
-    
-    # You may change following parameters. These lines prepare two points of
-    # Gauss problem. Each value should be in meters.
-    pos1 = np.array([
-                        150000000000.0,     # ***  X of initial point
-                        0.0,                # ***  Y of initial point 
-                        0.0                 # ***  Z of initial point
-                    ])
-    pos2 = np.array([
-                        0.0,                # ***  X of terminal point
-                        130000000000.0,     # ***  Y of terminal point
-                        20000000000.0       # ***  Z of terminal point
-                    ])
-    
-    # Plot pos1, pos2, and center position
-    ps = np.array([pos1, pos2, [0.0, 0.0, 0.0]]).T
-    ax.scatter(ps[0], ps[1], ps[2], marker='x', color='b')
-
-    while True:
-        print()
-        ans = input('Flight Duration (days) or Q ? ')
-        if ans.upper() == 'Q':
-            break
-    
-        if ar != None:
-            ar[0].remove()
-            ar = None
-            
-        duration = float(ans) * 86400.0
-        try:
-            # Compute initial and terminal velocity with solveGauss.
-            # You may try ccw=False.
-            ivel, tvel = solveGauss(pos1, pos2, duration, mu, 
-                                ccw=True    # ***  Flag for flight direction
-                                    )
-        except ValueError:
-            print('solveGauss could not compute initial/terminal velocity')
-            continue
-        print('  ivel=', ivel)
-        print('  tvel=', tvel)
-        
-        # Define orbit by epoch, position, and velocity
-        orbit.setOrbCart(0.0, pos1, ivel)
-        
-        # Get Keplerian orbital elements
-        kepl = orbit.elmKepl()
-        for ix in kepl:
-            print(' ', ix, '=', kepl[ix])
-            
-        # Get points on orbit
-        x, y, z, t = orbit.points(1001)
-        
-        # Plot an orbital line
-        ar = ax.plot(x, y, z, color='r')
-        plt.draw()
-        
-        # Get predicted position and velocity at the terminal position
-        predpos, predvel = orbit.posvelatt(duration)
-        
-        # Compare position and velocity at terminal point for checking
-        print('  delta pos=', pos2 - predpos)
-        print('  delta vel=', tvel - predvel)
-    
-if __name__ == '__main__':
-    main()
     
