@@ -127,17 +127,28 @@ class TwoBodyOrbit:
         h = np.cross(r0, rd0)
         hlen2 = np.dot(h, h)
         hlen = np.sqrt(hlen2)
-        
-        K = np.array([0., 0., 1.])
-        n = np.cross(K, h)
-        n_norm = n / np.sqrt(np.dot(n, n))
-        
-        hn = np.cross(h, n)
-        hn_norm = hn / np.sqrt(np.dot(hn, hn))
-        
         he = np.cross(h, ev)
         he_norm = he / np.sqrt(np.dot(he, he))
         ev_norm = ev / np.sqrt(np.dot(ev, ev))
+        
+        K = np.array([0., 0., 1.])
+        n = np.cross(K, h)
+        nlen = np.sqrt(np.dot(n, n)) # nlen can be zero
+        if nlen == 0.0:
+            self.lan = 0.0
+            self.parg = np.arctan2(ev[1], ev[0])
+            if self.parg < 0.0:
+                self.parg += math.pi * 2.0
+        else:
+            n_norm = n / nlen
+            hn = np.cross(h, n)
+            hn_norm = hn / np.sqrt(np.dot(hn, hn))
+            self.lan = np.arctan2(n[1], n[0])   # longitude of ascending node (radians)
+            if self.lan < 0.0:
+                self.lan += math.pi * 2.0
+            self.parg = np.arctan2(np.dot(ev, hn_norm), np.dot(ev, n_norm))    # periapsis argument (radians)
+            if self.parg < 0.0:
+                self.parg += math.pi * 2.0
         
         self.hv = h                             # orbital mormentum vecctor
         self.p = hlen2 / self.mu                # semi-latus rectum
@@ -145,12 +156,6 @@ class TwoBodyOrbit:
         self.e = np.sqrt(np.dot(ev, ev))        # eccentricity
         self.a = self.p / (1.0 - self.e ** 2)   # semi-major axis
         self.i = np.arccos(h[2] / hlen)         # inclination (radians)
-        self.lan = np.arctan2(n[1], n[0])       # longitude of ascending node (radians)
-        if self.lan < 0.0:
-            self.lan += math.pi * 2.0
-        self.parg = np.arctan2(np.dot(ev, hn_norm), np.dot(ev, n_norm))    # periapsis argument (radians)
-        if self.parg < 0.0:
-            self.parg += math.pi * 2.0
         self.ta0 = np.arctan2(np.dot(he_norm, r0), np.dot(ev_norm, r0))     # true anomaly of epoch
 
         # time from recent periapsis, mean anomaly, periapsis passage time        
@@ -317,7 +322,9 @@ class TwoBodyOrbit:
                 'e': Eccentricity
                 'i': Inclination in degrees
                 'Lomega': Longitude of ascending node in degrees
+                    If inclination is zero, Lomega yields zero
                 'Somega': Argument of periapsis in degrees
+                    If inclination is zero, Somega yields longitude of periapsis
                 'TAoE': True anomaly at epoch in degrees
                 'T': Periapsis passage time
                 'ma': Mean anomaly at epoch in degrees (elliptic orbit only)
