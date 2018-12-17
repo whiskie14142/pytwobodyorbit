@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Testing and demonstrating program for solveGauss of pytwobodyorbit
+"""Testing and demonstrating program for 'solveGauss' of pytwobodyorbit
 Created on Fri Dec 14 08:44:47 2018
 
 @author: Shushi Uetsuki/whiskie14142
@@ -44,8 +44,6 @@ ax.text2D(0.02, 0.97, 'Zoom: move mouse up/down with R button held down', transf
 
 mngr = plt.get_current_fig_manager()
 mngr.window.setGeometry(640, 50, 600, 600)
-
-
 
 
 class TestLamberts(tkinter.Frame):
@@ -156,23 +154,30 @@ and Residuals of terminating position and velocity."""
         
 
     def compute(self):
+        # Clicking of the button [Compute and Draw] runs this method
+        
+        # Get initiating position
         pos1 = np.array([float(self.pos1_X.get()), float(self.pos1_Y.get()),
                          float(self.pos1_Z.get())])
+                         
+        # Get terminating position
         pos2 = np.array([float(self.pos2_X.get()), float(self.pos2_Y.get()),
                          float(self.pos2_Z.get())])
+                         
         ps = np.array([pos1, pos2, [0.0, 0.0, 0.0]]).T
         
         if self.arsc is not None:
             self.arsc.remove()
         self.arsc = ax.scatter(ps[0], ps[1], ps[2], marker='x', color='b')
         
+        # Get flight time (days) and convert into seconds
         duration = float(self.ftime.get()) * secofday
         self.Lspace5['text'] = ' '
         try:
             # Compute initial and terminal velocity with solveGauss.
             # You may try ccw=False.
             ivel, tvel = solveGauss(pos1, pos2, duration, mu, 
-                                ccw=True    # ***  Flag for flight direction
+                                ccw=True    # Indicates prograde orbit
                                     )
         except ValueError:
             self.Lspace5['text'] = 'solveGauss() could not compute initial/terminal velocity. Try different parameters.'
@@ -186,7 +191,7 @@ and Residuals of terminating position and velocity."""
         self.Ltvel = tkinter.Label(self, text=stvel, width=80, anchor=tkinter.W)
         self.Ltvel.grid(row=16, column=0, columnspan=3, sticky=tkinter.W)
 
-        # Define orbit by epoch, position, and velocity
+        # Define orbit from epoch, initiating position, and initial velocity
         orbit.setOrbCart(0.0, pos1, ivel)
         
         # Get Keplerian orbital elements
@@ -206,10 +211,10 @@ and Residuals of terminating position and velocity."""
         self.arline = ax.plot(x, y, z, color='r', lw=0.75)
         plt.draw()
         
-        # Get predicted position and velocity at the terminal position
+        # Get predicted position and velocity at the end of the flight
         predpos, predvel = orbit.posvelatt(duration)
         
-        # Compare position and velocity at terminal point for checking
+        # Compute residuals of positions and velocities at the terminating point
         sdpos = 'Residuals in position (meters) = ' + str(pos2 - predpos)
         self.Ldpos = tkinter.Label(self, text=sdpos, width=80, anchor=tkinter.W)
         self.Ldpos.grid(row=19, column=0, columnspan=3, sticky=tkinter.W)
@@ -220,7 +225,7 @@ and Residuals of terminating position and velocity."""
     
 if __name__ == '__main__':
     mw =tkinter.Tk()
-    mw.title('Demonstrate solveGauss() function of pytwobodyorbit')
+    mw.title("Demonstrate 'solveGauss' function of pytwobodyorbit")
     mw.geometry('600x800+10+10')
     app = TestLamberts(master=mw)
     app.mainloop()
