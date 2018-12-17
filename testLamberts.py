@@ -39,6 +39,9 @@ ax.set_zlabel('Z')
 fig.tight_layout()
 fig.canvas.set_window_title('3D Orbit')
 
+ax.text2D(0.02, 1.00, 'Rotate: move mouse with L button held down', transform=ax.transAxes)
+ax.text2D(0.02, 0.97, 'Zoom: move mouse up/down with R button held down', transform=ax.transAxes)
+
 mngr = plt.get_current_fig_manager()
 mngr.window.setGeometry(640, 50, 600, 600)
 
@@ -62,16 +65,16 @@ class TestLamberts(tkinter.Frame):
         self.comment = tkinter.Text(self, width=80, height=17, wrap=tkinter.WORD)
         scom = """This program demonstrates 'solveGauss' function of the module pytwobodyorbit.
 
-The 'solveGauss' function computes a two-body orbit of a object from initiating
-position, terminating position, and flight time; it yields initial velocity and
-terminal velocity of the object.
+The 'solveGauss' function solves so-called 'Lambert's Probrem', computes a two-
+body orbit of an object, from its initiating position, terminating position,
+and flight time; it yields initial velocity and terminal velocity of the object.
 
-On this program, we use the Sun as the central body.  The unit of length is
-meters, and the unit of time is seconds.
+In this program, we use the Sun as the central body; resulting orbit is
+prograde; the unit of length is meters, and the unit of time is seconds.
 
 Edit coordinates of initiating position and terminating position, and flight
 time.  Then click [Compute and Draw] button.  Note that you specify the flight
-time in days.  This program convert it into seconds internally.
+time in days, and this program converts it into seconds internally.
 
 This program shows you initial velocity and terminal velocity of the object.
 In addition, it shows you the orbit in a 3-D chart, Keplerian orbital elements,
@@ -84,20 +87,20 @@ and Residuals of terminating position and velocity."""
         self.Lspace = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace.grid(row=2, column=0)
         
-        self.L1_X = tkinter.Label(self, text='Initiating Position: Pos1_X =')
-        self.L1_X.grid(row=3, column=0, sticky=tkinter.W)
+        self.L1_X = tkinter.Label(self, text='Initiating Position: Pos1_X  ')
+        self.L1_X.grid(row=3, column=0, sticky=tkinter.E)
         self.pos1_X = tkinter.StringVar(value='1.500000e11')
         self.Epos1_X = tkinter.Entry(self, bd=1, textvariable=self.pos1_X)
         self.Epos1_X.grid(row=3, column=1, sticky=tkinter.W)
         
-        self.L1_Y = tkinter.Label(self, text='Initiating Position: Pos1_Y =')
-        self.L1_Y.grid(row=4, column=0, sticky=tkinter.W)
+        self.L1_Y = tkinter.Label(self, text='Initiating Position: Pos1_Y  ')
+        self.L1_Y.grid(row=4, column=0, sticky=tkinter.E)
         self.pos1_Y = tkinter.StringVar(value='0.000000e11')
         self.Epos1_Y = tkinter.Entry(self, bd=1, textvariable=self.pos1_Y)
         self.Epos1_Y.grid(row=4, column=1, sticky=tkinter.W)
         
-        self.L1_Z = tkinter.Label(self, text='Initiating Position: Pos1_Z =')
-        self.L1_Z.grid(row=5, column=0, sticky=tkinter.W)
+        self.L1_Z = tkinter.Label(self, text='Initiating Position: Pos1_Z  ')
+        self.L1_Z.grid(row=5, column=0, sticky=tkinter.E)
         self.pos1_Z = tkinter.StringVar(value='0.000000e11')
         self.Epos1_Z = tkinter.Entry(self, bd=1, textvariable=self.pos1_Z)
         self.Epos1_Z.grid(row=5, column=1, sticky=tkinter.W)
@@ -105,18 +108,18 @@ and Residuals of terminating position and velocity."""
         self.Lspace2 = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace2.grid(row=6, column=0)
         
-        self.L2_X = tkinter.Label(self, text='Terminating Position: Pos2_X =')
-        self.L2_X.grid(row=7, column=0, sticky=tkinter.W)
+        self.L2_X = tkinter.Label(self, text='Terminating Position: Pos2_X  ')
+        self.L2_X.grid(row=7, column=0, sticky=tkinter.E)
         self.pos2_X = tkinter.StringVar(value='-0.500000e11')
         self.Epos2_X = tkinter.Entry(self, bd=1, textvariable=self.pos2_X)
         self.Epos2_X.grid(row=7, column=1, sticky=tkinter.W)
-        self.L2_Y = tkinter.Label(self, text='Terminating Position: Pos2_Y =')
-        self.L2_Y.grid(row=8, column=0, sticky=tkinter.W)
+        self.L2_Y = tkinter.Label(self, text='Terminating Position: Pos2_Y  ')
+        self.L2_Y.grid(row=8, column=0, sticky=tkinter.E)
         self.pos2_Y = tkinter.StringVar(value='1.300000e11')
         self.Epos2_Y = tkinter.Entry(self, bd=1, textvariable=self.pos2_Y)
         self.Epos2_Y.grid(row=8, column=1, sticky=tkinter.W)
-        self.L2_Z = tkinter.Label(self, text='Terminating Position: Pos2_Z =')
-        self.L2_Z.grid(row=9, column=0, sticky=tkinter.W)
+        self.L2_Z = tkinter.Label(self, text='Terminating Position: Pos2_Z  ')
+        self.L2_Z.grid(row=9, column=0, sticky=tkinter.E)
         self.pos2_Z = tkinter.StringVar(value='0.400000e11')
         self.Epos2_Z = tkinter.Entry(self, bd=1, textvariable=self.pos2_Z)
         self.Epos2_Z.grid(row=9, column=1, sticky=tkinter.W)
@@ -124,8 +127,8 @@ and Residuals of terminating position and velocity."""
         self.Lspace3 = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace3.grid(row=10, column=0)
         
-        self.Ltime = tkinter.Label(self, text='Flight Time (days):')
-        self.Ltime.grid(row=11, column=0, sticky=tkinter.W)
+        self.Ltime = tkinter.Label(self, text='Flight Time (days)  ')
+        self.Ltime.grid(row=11, column=0, sticky=tkinter.E)
         self.ftime = tkinter.StringVar(value='100.0')
         self.Eftime = tkinter.Entry(self, bd=1, textvariable=self.ftime)
         self.Eftime.grid(row=11, column=1, sticky=tkinter.W)
@@ -177,10 +180,10 @@ and Residuals of terminating position and velocity."""
 
         
         sivel = 'Initial Velocity (meters per second) = ' + str(ivel)
-        self.Livel = tkinter.Label(self, text=sivel)
+        self.Livel = tkinter.Label(self, text=sivel, width=80, anchor=tkinter.W)
         self.Livel.grid(row=15, column=0, columnspan=3, sticky=tkinter.W)
         stvel = 'Terminate Velocity (meters per second) = ' +str(tvel)
-        self.Ltvel = tkinter.Label(self, text=stvel)
+        self.Ltvel = tkinter.Label(self, text=stvel, width=80, anchor=tkinter.W)
         self.Ltvel.grid(row=16, column=0, columnspan=3, sticky=tkinter.W)
 
         # Define orbit by epoch, position, and velocity
@@ -190,8 +193,8 @@ and Residuals of terminating position and velocity."""
         kepl = orbit.elmKepl()
         skepl = 'Keplerian Orbital Elements'
         for ix in kepl:
-            skepl = skepl + '\n    ' + ix + ' =' + str(kepl[ix])
-        self.Lkepl = tkinter.Label(self, text=skepl, justify=tkinter.LEFT)
+            skepl = skepl + '\n    ' + ix + ' = ' + str(kepl[ix]) + '                                '
+        self.Lkepl = tkinter.Label(self, text=skepl, justify=tkinter.LEFT, anchor=tkinter.NW, height=12)
         self.Lkepl.grid(row=17, column=0, columnspan=3, sticky=tkinter.W)
         
         # Get points on orbit
@@ -208,10 +211,10 @@ and Residuals of terminating position and velocity."""
         
         # Compare position and velocity at terminal point for checking
         sdpos = 'Residuals in position (meters) = ' + str(pos2 - predpos)
-        self.Ldpos = tkinter.Label(self, text=sdpos)
+        self.Ldpos = tkinter.Label(self, text=sdpos, width=80, anchor=tkinter.W)
         self.Ldpos.grid(row=19, column=0, columnspan=3, sticky=tkinter.W)
         sdvel = 'Residuals in velocity (meters per second) = ' + str(tvel - predvel)
-        self.Ldvel = tkinter.Label(self, text=sdvel)
+        self.Ldvel = tkinter.Label(self, text=sdvel, width=80, anchor=tkinter.W)
         self.Ldvel.grid(row=20, column=0, columnspan=3, sticky=tkinter.W)
 
     
