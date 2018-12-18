@@ -75,7 +75,7 @@ time.  Then click [Compute and Draw] button.  Note that you specify the flight
 time in days, and this program converts it into seconds internally.
 
 This program shows you initial velocity and terminal velocity of the object.
-In addition, it shows you the orbit in a 3-D chart, Keplerian orbital elements,
+In addition, it shows you the orbit in a 3-D chart, Classical orbital elements,
 and Residuals of terminating position and velocity."""
 
         self.comment.insert(1.0, scom)
@@ -194,9 +194,9 @@ and Residuals of terminating position and velocity."""
         # Define orbit from epoch, initiating position, and initial velocity
         orbit.setOrbCart(0.0, pos1, ivel)
         
-        # Get Keplerian orbital elements
+        # Get Classical orbital elements
         kepl = orbit.elmKepl()
-        skepl = 'Keplerian Orbital Elements'
+        skepl = 'Classical Orbital Elements'
         for ix in kepl:
             skepl = skepl + '\n    ' + ix + ' = ' + str(kepl[ix]) + '                                '
         self.Lkepl = tkinter.Label(self, text=skepl, justify=tkinter.LEFT, anchor=tkinter.NW, height=12)

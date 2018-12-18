@@ -2,10 +2,10 @@
 """Comutations about two-body Orbits (v1.0.0)
 
 This module provide computations about two-body orbits, including:
-  Compute Keplerian orbital elements from position and velocity
+  Compute Classical orbital elements from position and velocity
   Provide seriese of points on orbital trajectory for visualization
   Predict position and velocity of the object for given time
-  Solve Lambert's problem  (From given two positions and flight duration 
+  Solve Lambert's problem  (From given two positions and flight time 
   between them, solveGauss() computes initial and terminal velocity of 
   the object)
 
@@ -114,7 +114,7 @@ class TwoBodyOrbit:
         self.vel = np.array(vel)
         self._setOrb = True
         
-        # Computes Keplerian orbital elements
+        # Computes Classical orbital elements
         r0 = np.array(self.pos)
         r0len = np.sqrt(np.dot(r0, r0))
         
@@ -314,7 +314,7 @@ class TwoBodyOrbit:
         return newpos, newvel
     
     def elmKepl(self):
-        """Returns Keplerian orbital element
+        """Returns Classical orbital element
         
         Returns:
             kepl: Dictionary of orbital elements.
