@@ -107,7 +107,11 @@ class TwoBodyOrbit:
             pos: Position (x,y,z), array like object
             vel: Velocity (xd,yd,zd), array like object
                 Units are depend on gravitational parameter (mu)
-                Origin of coordinates are position of the central body
+                Origin of coordinates is central body
+        
+        Exceptions:
+            ValueError: when angular momentum is zero, the method raises
+                ValueError
         """
         self.t0 = t
         self.pos = np.array(pos)
@@ -121,12 +125,15 @@ class TwoBodyOrbit:
         rd0 = np.array(self.vel)
         rd0len2 = np.dot(rd0, rd0)
         
-        ev = ((rd0len2 - self.mu/r0len) * r0 - np.dot(r0, rd0) * rd0) / self.mu
         # eccentricity vector
+        ev = ((rd0len2 - self.mu/r0len) * r0 - np.dot(r0, rd0) * rd0) / self.mu
         
         h = np.cross(r0, rd0)
         hlen2 = np.dot(h, h)
         hlen = np.sqrt(hlen2)
+        if hlen == 0.0:
+            self._setOrb = False
+            raise(ValueError('Inappropriate pos and vel: setOrbitCart'))
         he = np.cross(h, ev)
         he_norm = he / np.sqrt(np.dot(he, he))
         ev_norm = ev / np.sqrt(np.dot(ev, ev))
@@ -156,18 +163,183 @@ class TwoBodyOrbit:
         self.e = np.sqrt(np.dot(ev, ev))        # eccentricity
         self.a = self.p / (1.0 - self.e ** 2)   # semi-major axis
         self.i = np.arccos(h[2] / hlen)         # inclination (radians)
-        self.ta0 = np.arctan2(np.dot(he_norm, r0), np.dot(ev_norm, r0))     # true anomaly of epoch
+        self.ta0 = np.arctan2(np.dot(he_norm, r0), np.dot(ev_norm, r0))     # true anomaly at epoch
 
         # time from recent periapsis, mean anomaly, periapsis passage time        
         timef = self.timeFperi(self.ta0)
         self.ma = None
         self.pr = None
-        self.n = None
+        self.mm = None
         if self.e < 1.0:
             self.pr = (2.0 * math.pi * np.sqrt(self.a ** 3 /self.mu))   # orbital period
             self.ma = timef / self.pr * math.pi * 2.0                   # Mean anomaly (rad)
-            self.n = 2.0 * math.pi / self.pr                            # mean motion (rad/time)
+            self.mm = 2.0 * math.pi / self.pr                           # mean motion (rad/time)
         self.T = self.t0 - timef                                        # periapsis passage time
+
+    def setOrbKepl(self, epoch, a, e, i, LoAN, AoP, TA=None, T=None, MA=None):
+        """Define the orbit by classical orbital elements
+        
+        Args:
+            epoch: Epoch
+            a:       semi-major axis
+                     For parabolic trajectory, periapsis distance
+            e:       eccentricity
+            i:       inclination (degrees)
+            LoAN:    longitudeof ascending node (degrees)
+                     If inclination is zero, this value is reset to zero
+            AoP:     argument of periapsis (degrees)
+                     For a circular orbit, this value is reset to zero
+                     If inclination is zero, this value should be longitule
+                     of periapsis
+            
+            TA:      true anomaly on epoch (degrees)
+                     For a circular orbit, you should define this value; the
+                     value defines angle from ascending node
+            T:       periapsis passage time
+            MA:      mean anomaly on epoch (degrees)
+                     For a parabolic or hyperbolic trajectory, you cannot
+                     specify this argument
+                 TA, T, and MA are mutually execlusive arguments. You 
+                 should specify one of them.  If TA is specified, other 
+                 arguments will be ignored. If T is specified, MA will be 
+                 ignored.
+        
+        Exceptions:
+            RuntimeError:
+        """
+        # changed keys
+        Lomega = LoAN
+        Somega = AoP
+        TAoE = TA
+        ma = MA
+        
+        if e > 1.0 and a > 0.0:
+            raise RuntimeError('Invalid Orbital Element(s) in setOrbKepl')
+        if e >= 1.0 and TAoE is None and T is None:
+            raise RuntimeError('Missing Orbital Element: TA or T in setOrbKepl')
+        if e != 0.0 and Somega is None:
+            raise RuntimeError('Missing Orbital Element: AoP in setOrbKepl')
+        if e == 0.0 and TAoE is None:
+            raise RuntimeError('Missing Orbital Element: TA in setOrbKepl')
+        if TAoE is None and T is None and ma is None:
+            raise RuntimeError('Missing Orbital Element: setOrbKepl requires one of the TA, T, or MA')
+            
+        # set fixed value
+        if i == 0.0:
+            Lomega = 0.0
+        if e == 0.0:
+            Somega = 0.0
+        
+        self.a = a
+        self.e = e
+        self.i = math.radians(i)
+        self.lan = math.radians(Lomega)
+        self.parg = math.radians(Somega)
+
+        self.pr = None
+        self.ma = None
+        self.mm = None
+
+        self._setOrb = True
+
+        # semi-latus rectum        
+        if e != 1.0:
+            self.p = a * (1.0 - e * e)
+        else:
+            self.p = a * 2.0
+            
+        # orbital period and mean motion
+        if e < 1.0:
+            self.pr = math.pi * 2.0 / math.sqrt(self.mu) * a ** 1.5
+            self.mm = math.pi * 2.0 / self.pr
+
+        # R: rotation matrix
+        R1n = np.array[math.cos(self.lan)*math.cos(self.parg) 
+                    - math.sin(self.lan)*math.sin(self.parg)*math.cos(self.i),
+                    (-1.0)*math.cos(self.lan)*math.sin(self.parg) 
+                    - math.sin(self.lan)*math.cos(self.parg)*math.cos(self.i),
+                       math.sin(self.lan)*math.sin(self.i)]
+        R2n = np.array[math.sin(self.lan)*math.cos(self.parg) 
+                    + math.cos(self.lan)*math.sin(self.parg)*math.cos(self.i),
+                    (-1.0)*math.sin(self.lan)*math.sin(self.parg) 
+                    + math.cos(self.lan)*math.cos(self.parg)*math.cos(self.i),
+                    (-1.0)*math.cos(self.lan)*math.sin(self.i)]
+        R3n = np.array[math.sin(self.parg)*math.sin(self.i),
+                    math.cos(self.parg)*math.sin(self.i),
+                    math.cos(self.i)]
+        R = np.array[R1n, R2n, R3n]
+
+        # eccentricity vector
+        self.ev = np.dot(R, np.array[[1.0], [0.0], [0.0]]) * self.e
+        # angular momentum vector
+        h = math.sqrt(self.p * self.mu)
+        self.hv = np.dot(R, np.array[[0.0], [0.0], [1.0]]) * h
+        nv = np.dot(R, np.array[[0.0], [1.0], [0.0]])
+        print('ev=', self.ev)
+        print('hv=', self.hv)
+        
+        # ta0, T, ma
+        if TAoE is not None:
+            # true anomaly at epoch
+            self.ta0 = math.radians(TAoE)
+            # periapsis passage time
+            if self.e != 0.0:
+                self.T = self.t0 - self.timeFperi(self.ta0)
+            else:
+                self.T = (math.pi * 2.0 - self.ta0) / self.mm + self.t0
+            # mean anomaly at epoch
+            if self.e < 1.0:
+                self.ma = (self.t0 - self.T) / self.pr * math.pi * 2.0
+            else:
+                self.ma = None
+        elif T is not None:
+            # periapsis passage time
+            self.T = T
+            # position and velocity on periapsis
+            self.pos, self.vel = self.posvel(0.0)
+            # position and velocity at epoch
+            self.t0 = self.T   # temporary setting
+            pos, vel = self.posvelatt(epoch)
+            # true anomaly at epoch
+            ev_norm = self.ev / np.sqrt(np.dot(self.ev, self.ev))
+            nv_norm = nv / np.sqrt(np.dot(nv, nv))
+            pos_norm = pos / np.sqrt(np.dot(pos, pos))
+            # true anomaly at epoch
+            self.ta0 = np.arctan2(np.dot(pos_norm, nv_norm), np.dot(pos_norm, ev_norm))
+            # mean anomaly at epoch
+            if self.e < 1.0:
+                self.ma = (epoch - self.T) / self.pr * math.pi * 2.0
+                if self.ma < 0.0:
+                    self.ma += math.pi * 2.0
+            else:
+                self.ma = None
+        else:
+            # mean anomaly at epoch
+            self.ma = ma
+            # periapsis passage time
+            self.T = epoch - self.pr * ma / (math.pi * 2.0)
+            # position and velocity on periapsis
+            self.pos, self.vel = self.posvel(0.0)
+            # position and velocity at epoch
+            self.t0 = self.T   # temporary setting
+            pos, vel = self.posvelatt(epoch)
+            # true anomaly at epoch
+            ev_norm = self.ev / np.sqrt(np.dot(self.ev, self.ev))
+            nv_norm = nv / np.sqrt(np.dot(nv, nv))
+            pos_norm = pos / np.sqrt(np.dot(pos, pos))
+            # true anomaly at epoch
+            self.ta0 = np.arctan2(np.dot(pos_norm, nv_norm), np.dot(pos_norm, ev_norm))
+        
+        # epoch
+        self.t0 = epoch
+        # position and velocity at epoch
+        if e != 0.0:
+            self.pos, self.vel = self.posvel(self.ta0)
+        else:
+            r = np.array[[math.cos(self.ta0)], [math.sin(self.ta0)], [0.0]] * self.a
+            self.pos = np.dot(R, r)
+            v = np.array[[(-1.0)*math.sin(self.ta0)], [math.cos(self.ta0)], [0.0]] * math.sqrt(self.mu / self.a)
+            self.vel = np.dot(R, v)
     
     def points(self, ndata):
         """Returns points on orbital trajectory for visualization
@@ -321,13 +493,17 @@ class TwoBodyOrbit:
                 'a': Semimajor axis
                 'e': Eccentricity
                 'i': Inclination in degrees
-                'Lomega': Longitude of ascending node in degrees
+                'LoAN': Longitude of ascending node in degrees
                     If inclination is zero, Lomega yields zero
-                'Somega': Argument of periapsis in degrees
+                'AoP': Argument of periapsis in degrees
                     If inclination is zero, Somega yields longitude of periapsis
-                'TAoE': True anomaly at epoch in degrees
+                    For circular orbit, Lomega yields zero
+                'TA': True anomaly at epoch in degrees
+                    For circular orbit, TAoE yields angle from ascending node
                 'T': Periapsis passage time
-                'ma': Mean anomaly at epoch in degrees (elliptic orbit only)
+                    For circular orbit, T yields ascending node passage time
+                'MA': Mean anomaly at epoch in degrees (elliptic orbit only)
+                    For circular orbit, ma is the same to TAoE
                 'n': Mean motion in degrees (elliptic orbit only)
                 'P': Orbital period (elliptic orbit only)
         """
@@ -338,14 +514,19 @@ class TwoBodyOrbit:
         'a':self.a, \
         'e':self.e, \
         'i':math.degrees(self.i), \
-        'Lomega':math.degrees(self.lan), \
-        'Somega':math.degrees(self.parg), \
-        'TAoE':math.degrees(self.ta0), \
+        'LoAN':math.degrees(self.lan), \
+        'AoP':math.degrees(self.parg), \
+        'TA':math.degrees(self.ta0), \
         'T':self.T}
         if self.e < 1.0:
-            kepl['ma'] = math.degrees(self.ma)
-            kepl['n'] = math.degrees(self.n)
+            kepl['MA'] = math.degrees(self.ma)
+            kepl['n'] = math.degrees(self.mm)
             kepl['P'] = self.pr
+        else:
+            kepl['MA'] = None
+            kepl['n'] = None
+            kepl['P'] = None
+            
         return kepl
 
 def solveGauss(ipos, tpos, targett, mu, ccw=True):
@@ -363,8 +544,8 @@ def solveGauss(ipos, tpos, targett, mu, ccw=True):
         ivel: Initial velocity of the object (xd,yd,zd) as Numpy array
         tvel: Terminal velocity of the object (xd,yd,zd) as Numpy array
     Exception:
-        ValueError: When input data (ipos, tpos, targett) are incovenient,
-                    this function raises this exception
+        ValueError: When input data (ipos, tpos, targett) are inappropriate,
+                    the function raises ValueError
                     
         Origin of coordinates are position of the central body
     """
@@ -439,7 +620,7 @@ def solveGauss(ipos, tpos, targett, mu, ccw=True):
                 found = True
                 break
     if not found:
-        raise(ValueError('Could not solve Gauss Plobrem: solveGauss'))        
+        raise(ValueError("Could not solve Lambert's Plobrem: solveGauss"))        
     
     # configure b1, and b2
     b1 = (-1.0) * dnu ** 2
@@ -458,7 +639,7 @@ def solveGauss(ipos, tpos, targett, mu, ccw=True):
         else:
             b1 = (b1 + lastb1) /2.0
     if not found:
-        raise(ValueError('Could not solve Gauss Plobrem: solveGauss'))        
+        raise(ValueError("Could not solve Lambert's Plobrem: solveGauss"))        
     
     zn = bisect(_func, b1, b2, args=(tsec, r1pr2, A, mu), maxiter=100)
 
