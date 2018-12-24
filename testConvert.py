@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Testing and demonstrating program for 'solveGauss' of pytwobodyorbit
+"""Testing and demonstrating program for pytwobodyorbit
 Created on Fri Dec 14 08:44:47 2018
 
 @author: Shushi Uetsuki/whiskie14142
@@ -46,14 +46,14 @@ mngr = plt.get_current_fig_manager()
 mngr.window.setGeometry(640, 50, 600, 600)
 
 
-class TestLambert(tkinter.Frame):
+class TestConvert(tkinter.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.pack()
         self.master = master
         self.arline = None
         self.arsc = None
-        self.object = ['  P1', '  P2', '  Sun']
+        self.object = ['  epoch', '  t', '  Sun']
         self.arname = [None, None, None]
 
         self.create_widgets()
@@ -63,7 +63,7 @@ class TestLambert(tkinter.Frame):
         self.Lspace0.grid(row=0, column=0)
 
         self.comment = tkinter.Text(self, width=80, height=19, wrap=tkinter.WORD)
-        scom = """This program demonstrates 'lambert' function of the module 'pytwobodyorbit'.
+        scom = """This program demonstrates the module 'pytwobodyorbit'.
 
 The 'lambert' function solves so-called 'Lambert's Probrem'.  It computes a 
 two-body orbit of an object from its initial position (P1), terminal position 
@@ -85,56 +85,85 @@ velocity.  In addition, it shows the orbit in the 3D chart.
 
         self.comment.insert(1.0, scom)
         self.comment['state'] = tkinter.DISABLED
-        self.comment.grid(row=1, column=0, columnspan=3)
+        self.comment.grid(row=1, column=0, columnspan=5)
         
         self.Lspace = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace.grid(row=2, column=0)
         
-        self.L1_X = tkinter.Label(self, text='Initial Position: P1(X)  ')
-        self.L1_X.grid(row=3, column=0, sticky=tkinter.E)
-        self.pos1_X = tkinter.StringVar(value='1.500000e11')
-        self.Epos1_X = tkinter.Entry(self, bd=1, textvariable=self.pos1_X)
-        self.Epos1_X.grid(row=3, column=1, sticky=tkinter.W)
+        self.Ltitle1 = tkinter.Label(self, text='Classical Orbital Elements')
+        self.Ltitle1.grid(row=3, column=0, columnspan=2)
         
-        self.L1_Y = tkinter.Label(self, text='Initial Position: P1(Y)  ')
-        self.L1_Y.grid(row=4, column=0, sticky=tkinter.E)
-        self.pos1_Y = tkinter.StringVar(value='0.000000e11')
-        self.Epos1_Y = tkinter.Entry(self, bd=1, textvariable=self.pos1_Y)
-        self.Epos1_Y.grid(row=4, column=1, sticky=tkinter.W)
+        self.KE_d = [
+                'Epoch  ',
+                'Semi-major axis (a)  ',
+                'Eccentricity (e)  ',
+                'Inclination (i)  ',
+                'Longitude of AN (LoAN)  ',
+                'Argument of P (AoP)  '
+                'True anomaly (TA)  ',
+                'Periapsis psg (T)  ',
+                'Mean anomaly (MA)  ']
+        self.KE_v = [
+                '0.000000',
+                '1.500000e11',
+                '0.200000',
+                '15.000000',
+                '60.000000',
+                '135.000000',
+                '70.000000',
+                'None',
+                'None']
+        self.KE_L = []
+        self.KE_SV = []
+        self.KE_E = []
         
-        self.L1_Z = tkinter.Label(self, text='Initial Position: P1(Z)  ')
-        self.L1_Z.grid(row=5, column=0, sticky=tkinter.E)
-        self.pos1_Z = tkinter.StringVar(value='0.000000e11')
-        self.Epos1_Z = tkinter.Entry(self, bd=1, textvariable=self.pos1_Z)
-        self.Epos1_Z.grid(row=5, column=1, sticky=tkinter.W)
+        for j in range(7):
+            self.KE_L.append(tkinter.Label(self, text=self.KE_d[j]))
+            self.KE_L[j].grid(row=j+4, column=0, sticky=tkinter.E)
+            self.KE_SV.append(tkinter.StringVar(value=self.KE_v[j]))
+            self.KE_E.append(tkinter.Entry(self, bd=1, textvariable=self.KE_SV[j]))
+            self.KE_E[j].grid(row=j+4, column=1, sticky=tkinter.W)
+
+        self.Ltitle2 = tkinter.Label(self, text='Cartesian Orbital Elements')
+        self.Ltitle2.grid(row=3, column=3, columnspan=2)
         
-        self.Lspace2 = tkinter.Label(self, text=' ', font=('Times', 4))
-        self.Lspace2.grid(row=6, column=0)
-        
-        self.L2_X = tkinter.Label(self, text='Terminal Position: P2(X)  ')
-        self.L2_X.grid(row=7, column=0, sticky=tkinter.E)
-        self.pos2_X = tkinter.StringVar(value='-0.500000e11')
-        self.Epos2_X = tkinter.Entry(self, bd=1, textvariable=self.pos2_X)
-        self.Epos2_X.grid(row=7, column=1, sticky=tkinter.W)
-        self.L2_Y = tkinter.Label(self, text='Terminal Position: P2(Y)  ')
-        self.L2_Y.grid(row=8, column=0, sticky=tkinter.E)
-        self.pos2_Y = tkinter.StringVar(value='1.300000e11')
-        self.Epos2_Y = tkinter.Entry(self, bd=1, textvariable=self.pos2_Y)
-        self.Epos2_Y.grid(row=8, column=1, sticky=tkinter.W)
-        self.L2_Z = tkinter.Label(self, text='Terminal Position: P2(Z)  ')
-        self.L2_Z.grid(row=9, column=0, sticky=tkinter.E)
-        self.pos2_Z = tkinter.StringVar(value='0.400000e11')
-        self.Epos2_Z = tkinter.Entry(self, bd=1, textvariable=self.pos2_Z)
-        self.Epos2_Z.grid(row=9, column=1, sticky=tkinter.W)
-        
+        self.CE_d = [
+                '  Epoch',
+                '  Position X',
+                '  Position Y',
+                '  Position Z',
+                '  Velocity XD',
+                '  Velocity YD',
+                '  Velocity ZD']
+        self.CE_v = [
+                '0.000000',
+                '1.000000e11',
+                '1.200000e11',
+                '0.200000e11',
+                '-20000.00',
+                '18000.00',
+                '0.000000']
+
+        self.CE_L = []
+        self.CE_SV = []
+        self.CE_E = []
+
+        for j in range(7):
+            self.CE_L.append(tkinter.Label(self, text=self.CE_d[j]))
+            self.CE_L[j].grid(row=j+4, column=3, sticky=tkinter.W)
+            self.CE_SV.append(tkinter.StringVar(value=self.CE_v[j]))
+            self.CE_E.append(tkinter.Entry(self, bd=1, textvariable=self.CE_SV[j]))
+            self.CE_E[j].grid(row=j+4, column=4, sticky=tkinter.E)
+
         self.Lspace3 = tkinter.Label(self, text=' ', font=('Times', 4))
-        self.Lspace3.grid(row=10, column=0)
+        self.Lspace3.grid(row=15, column=0)
+
+
+
+
         
-        self.Ltime = tkinter.Label(self, text='Flight Time (days)  ')
-        self.Ltime.grid(row=11, column=0, sticky=tkinter.E)
-        self.ftime = tkinter.StringVar(value='100.0')
-        self.Eftime = tkinter.Entry(self, bd=1, textvariable=self.ftime)
-        self.Eftime.grid(row=11, column=1, sticky=tkinter.W)
+        
+        
 
         self.Lspace4 = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace4.grid(row=12, column=0)
@@ -262,7 +291,7 @@ velocity.  In addition, it shows the orbit in the 3D chart.
     
 if __name__ == '__main__':
     mw =tkinter.Tk()
-    mw.title("Demonstrate 'lambert' function of pytwobodyorbit")
+    mw.title("Demonstrate pytwobodyorbit")
     mw.geometry('600x830+10+10')
-    app = TestLambert(master=mw)
+    app = TestConvert(master=mw)
     app.mainloop()
