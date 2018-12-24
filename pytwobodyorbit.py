@@ -529,7 +529,7 @@ class TwoBodyOrbit:
             
         return kepl
 
-def solveGauss(ipos, tpos, targett, mu, ccw=True):
+def lambert(ipos, tpos, targett, mu, ccw=True):
     """Solve Lambert's Problem
     
     From given initial position, terminal position, and flight time, 

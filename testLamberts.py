@@ -8,7 +8,7 @@ Created on Fri Dec 14 08:44:47 2018
 import numpy as np
 import tkinter
 from pytwobodyorbit import TwoBodyOrbit
-from pytwobodyorbit import solveGauss
+from pytwobodyorbit import lambert
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import matplotlib
@@ -53,6 +53,8 @@ class TestLamberts(tkinter.Frame):
         self.master = master
         self.arline = None
         self.arsc = None
+        self.object = ['  P1', '  P2', '  Sun']
+        self.arname = [None, None, None]
 
         self.create_widgets()
         
@@ -60,23 +62,26 @@ class TestLamberts(tkinter.Frame):
         self.Lspace0 = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace0.grid(row=0, column=0)
 
-        self.comment = tkinter.Text(self, width=80, height=17, wrap=tkinter.WORD)
-        scom = """This program demonstrates 'solveGauss' function of the module pytwobodyorbit.
+        self.comment = tkinter.Text(self, width=80, height=19, wrap=tkinter.WORD)
+        scom = """This program demonstrates 'lambert' function of the module 'pytwobodyorbit'.
 
-The 'solveGauss' function solves so-called 'Lambert's Probrem', computes a two-
-body orbit of an object, from its initiating position, terminating position,
-and flight time; it yields initial velocity and terminal velocity of the object.
+The 'lambert' function solves so-called 'Lambert's Probrem'.  It computes a 
+two-body orbit of an object from its initial position (P1), terminal position 
+(P2), and flight time from P1 to P2; it yields initial velocity and terminal 
+velocity of the object.
 
-In this program, we use the Sun as the central body; resulting orbit is
-prograde; the unit of length is meters, and the unit of time is seconds.
+In this program, we use the Sun as the central body; the unit of length is 
+meters, and the unit of time is days for input/output.  
+Note that unit of a velocity is meters per second.
 
-Edit coordinates of initiating position and terminating position, and flight
-time.  Then click [Compute and Draw] button.  Note that you specify the flight
-time in days, and this program converts it into seconds internally.
+USAGE:
+Edit coordinates of P1 and P2, and flight time, and click [Compute Pro. Orb] 
+button for prograde orbit, or [Compute Retro. Orb] for retrograde orbit.
 
-This program shows you initial velocity and terminal velocity of the object.
-In addition, it shows you the orbit in a 3-D chart, Classical orbital elements,
-and Residuals of terminating position and velocity."""
+This program shows initial velocity and terminal velocity of the object. It 
+shows classical orbital elements, and residuals of terminating position and 
+velocity.  In addition, it shows the orbit in the 3D chart.
+"""
 
         self.comment.insert(1.0, scom)
         self.comment['state'] = tkinter.DISABLED
@@ -85,19 +90,19 @@ and Residuals of terminating position and velocity."""
         self.Lspace = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace.grid(row=2, column=0)
         
-        self.L1_X = tkinter.Label(self, text='Initiating Position: Pos1_X  ')
+        self.L1_X = tkinter.Label(self, text='Initial Position: P1(X)  ')
         self.L1_X.grid(row=3, column=0, sticky=tkinter.E)
         self.pos1_X = tkinter.StringVar(value='1.500000e11')
         self.Epos1_X = tkinter.Entry(self, bd=1, textvariable=self.pos1_X)
         self.Epos1_X.grid(row=3, column=1, sticky=tkinter.W)
         
-        self.L1_Y = tkinter.Label(self, text='Initiating Position: Pos1_Y  ')
+        self.L1_Y = tkinter.Label(self, text='Initial Position: P1(Y)  ')
         self.L1_Y.grid(row=4, column=0, sticky=tkinter.E)
         self.pos1_Y = tkinter.StringVar(value='0.000000e11')
         self.Epos1_Y = tkinter.Entry(self, bd=1, textvariable=self.pos1_Y)
         self.Epos1_Y.grid(row=4, column=1, sticky=tkinter.W)
         
-        self.L1_Z = tkinter.Label(self, text='Initiating Position: Pos1_Z  ')
+        self.L1_Z = tkinter.Label(self, text='Initial Position: P1(Z)  ')
         self.L1_Z.grid(row=5, column=0, sticky=tkinter.E)
         self.pos1_Z = tkinter.StringVar(value='0.000000e11')
         self.Epos1_Z = tkinter.Entry(self, bd=1, textvariable=self.pos1_Z)
@@ -106,17 +111,17 @@ and Residuals of terminating position and velocity."""
         self.Lspace2 = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace2.grid(row=6, column=0)
         
-        self.L2_X = tkinter.Label(self, text='Terminating Position: Pos2_X  ')
+        self.L2_X = tkinter.Label(self, text='Terminal Position: P2(X)  ')
         self.L2_X.grid(row=7, column=0, sticky=tkinter.E)
         self.pos2_X = tkinter.StringVar(value='-0.500000e11')
         self.Epos2_X = tkinter.Entry(self, bd=1, textvariable=self.pos2_X)
         self.Epos2_X.grid(row=7, column=1, sticky=tkinter.W)
-        self.L2_Y = tkinter.Label(self, text='Terminating Position: Pos2_Y  ')
+        self.L2_Y = tkinter.Label(self, text='Terminal Position: P2(Y)  ')
         self.L2_Y.grid(row=8, column=0, sticky=tkinter.E)
         self.pos2_Y = tkinter.StringVar(value='1.300000e11')
         self.Epos2_Y = tkinter.Entry(self, bd=1, textvariable=self.pos2_Y)
         self.Epos2_Y.grid(row=8, column=1, sticky=tkinter.W)
-        self.L2_Z = tkinter.Label(self, text='Terminating Position: Pos2_Z  ')
+        self.L2_Z = tkinter.Label(self, text='Terminal Position: P2(Z)  ')
         self.L2_Z.grid(row=9, column=0, sticky=tkinter.E)
         self.pos2_Z = tkinter.StringVar(value='0.400000e11')
         self.Epos2_Z = tkinter.Entry(self, bd=1, textvariable=self.pos2_Z)
@@ -134,10 +139,15 @@ and Residuals of terminating position and velocity."""
         self.Lspace4 = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace4.grid(row=12, column=0)
         
-        self.solve_Lam = tkinter.Button(self)
-        self.solve_Lam['text'] = 'Compute and Draw'
-        self.solve_Lam['command'] = self.compute
-        self.solve_Lam.grid(row=13, column=1, sticky=tkinter.W)
+        self.solve_Lam_p = tkinter.Button(self)
+        self.solve_Lam_p['text'] = ' Compute Pro. Orb. '
+        self.solve_Lam_p['command'] = self.prograde
+        self.solve_Lam_p.grid(row=13, column=1, sticky=tkinter.W)
+        
+        self.solve_Lam_r = tkinter.Button(self)
+        self.solve_Lam_r['text'] = ' Compute Retro. Orb. '
+        self.solve_Lam_r['command'] = self.retrograde
+        self.solve_Lam_r.grid(row=13, column=2, sticky=tkinter.W)
         
         self.Lspace5 = tkinter.Label(self, text=' ', font=('Arial',9,'bold'))
         self.Lspace5.grid(row=14, column=0, columnspan=3)
@@ -146,14 +156,18 @@ and Residuals of terminating position and velocity."""
         self.Lspace6.grid(row=29, column=0)
         
         self.quitapp = tkinter.Button(self)
-        self.quitapp['text'] = 'Quit'
+        self.quitapp['text'] = '    Quit    '
         self.quitapp['command'] = self.master.destroy
         self.quitapp.grid(row=30, column=2)
         
-        self.compute()
+    def prograde(self):
+        self.compute(prog=True)
+        
+    def retrograde(self):
+        self.compute(prog=False)
         
 
-    def compute(self):
+    def compute(self, prog=True):
         # Clicking of the button [Compute and Draw] runs this method
         
         # Get initiating position
@@ -168,7 +182,13 @@ and Residuals of terminating position and velocity."""
         
         if self.arsc is not None:
             self.arsc.remove()
-        self.arsc = ax.scatter(ps[0], ps[1], ps[2], marker='x', color='b')
+            for j in range(3):
+                self.arname[j].remove()
+                
+        self.arsc = ax.scatter(ps[0], ps[1], ps[2], marker='+', color='b')
+        for j in range(3):
+            self.arname[j] = ax.text(ps[0, j], ps[1, j], ps[2, j], 
+                             self.object[j], color='b', fontsize=9)
         
         # Get flight time (days) and convert into seconds
         duration = float(self.ftime.get()) * secofday
@@ -176,9 +196,7 @@ and Residuals of terminating position and velocity."""
         try:
             # Compute initial and terminal velocity with solveGauss.
             # You may try ccw=False.
-            ivel, tvel = solveGauss(pos1, pos2, duration, mu, 
-                                ccw=True    # Indicates prograde orbit
-                                    )
+            ivel, tvel = lambert(pos1, pos2, duration, mu, ccw=prog)
         except ValueError:
             self.Lspace5['text'] = 'solveGauss() could not compute initial/terminal velocity. Try different parameters.'
             return
@@ -194,11 +212,30 @@ and Residuals of terminating position and velocity."""
         # Define orbit from epoch, initiating position, and initial velocity
         orbit.setOrbCart(0.0, pos1, ivel)
         
-        # Get Classical orbital elements
+        # Get Classical orbital elements and show them
+        # Convert unit of time to seconds
         kepl = orbit.elmKepl()
         skepl = 'Classical Orbital Elements'
         for ix in kepl:
-            skepl = skepl + '\n    ' + ix + ' = ' + str(kepl[ix]) + '                                '
+            skepl = skepl + '\n    ' + ix + ' = '
+            if ix == 'T' or ix == 'P':
+                if kepl[ix] is None:
+                    skepl = skepl + 'None'
+                else:
+                    skepl = skepl + str(kepl[ix] / secofday) 
+            elif ix == 'MA':
+                if kepl[ix] is None:
+                    skepl = skepl + 'None'
+                else:
+                    skepl = skepl + str(kepl[ix]) 
+            elif ix == 'n':
+                if kepl[ix] is None:
+                    skepl = skepl + 'None'
+                else:
+                    skepl = skepl + str(kepl[ix] * secofday) 
+            else:
+                skepl = skepl + str(kepl[ix])
+            skepl = skepl + '                                '
         self.Lkepl = tkinter.Label(self, text=skepl, justify=tkinter.LEFT, anchor=tkinter.NW, height=12)
         self.Lkepl.grid(row=17, column=0, columnspan=3, sticky=tkinter.W)
         
@@ -226,6 +263,6 @@ and Residuals of terminating position and velocity."""
 if __name__ == '__main__':
     mw =tkinter.Tk()
     mw.title("Demonstrate 'solveGauss' function of pytwobodyorbit")
-    mw.geometry('600x800+10+10')
+    mw.geometry('600x830+10+10')
     app = TestLamberts(master=mw)
     app.mainloop()
