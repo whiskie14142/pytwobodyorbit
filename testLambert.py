@@ -19,7 +19,7 @@ import matplotlib
 mu = 1.32712440041e20
 
 # Create instance of TwoBodyOrbit
-orbit = TwoBodyOrbit('object')
+orbit = TwoBodyOrbit('object', mmu=mu)
 
 # Seconds of a day
 secofday = 86400.0

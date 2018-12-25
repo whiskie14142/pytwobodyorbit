@@ -205,7 +205,7 @@ class TwoBodyOrbit:
                  ignored.
         
         Exceptions:
-            RuntimeError:
+            ValueError:
         """
         # changed keys
         Lomega = LoAN
@@ -214,15 +214,15 @@ class TwoBodyOrbit:
         ma = MA
         
         if e > 1.0 and a > 0.0:
-            raise RuntimeError('Invalid Orbital Element(s) in setOrbKepl')
+            raise ValueError('Invalid Orbital Element(s) in setOrbKepl')
         if e >= 1.0 and TAoE is None and T is None:
-            raise RuntimeError('Missing Orbital Element: TA or T in setOrbKepl')
+            raise ValueError('Missing Orbital Element: TA or T in setOrbKepl')
         if e != 0.0 and Somega is None:
-            raise RuntimeError('Missing Orbital Element: AoP in setOrbKepl')
+            raise ValueError('Missing Orbital Element: AoP in setOrbKepl')
         if e == 0.0 and TAoE is None:
-            raise RuntimeError('Missing Orbital Element: TA in setOrbKepl')
+            raise ValueError('Missing Orbital Element: TA in setOrbKepl')
         if TAoE is None and T is None and ma is None:
-            raise RuntimeError('Missing Orbital Element: setOrbKepl requires one of the TA, T, or MA')
+            raise ValueError('Missing Orbital Element: setOrbKepl requires one of the TA, T, or MA')
             
         # set fixed value
         if i == 0.0:
@@ -230,6 +230,7 @@ class TwoBodyOrbit:
         if e == 0.0:
             Somega = 0.0
         
+        self.t0 = epoch
         self.a = a
         self.e = e
         self.i = math.radians(i)
@@ -254,29 +255,27 @@ class TwoBodyOrbit:
             self.mm = math.pi * 2.0 / self.pr
 
         # R: rotation matrix
-        R1n = np.array[math.cos(self.lan)*math.cos(self.parg) 
+        R1n = np.array([math.cos(self.lan)*math.cos(self.parg) 
                     - math.sin(self.lan)*math.sin(self.parg)*math.cos(self.i),
                     (-1.0)*math.cos(self.lan)*math.sin(self.parg) 
                     - math.sin(self.lan)*math.cos(self.parg)*math.cos(self.i),
-                       math.sin(self.lan)*math.sin(self.i)]
-        R2n = np.array[math.sin(self.lan)*math.cos(self.parg) 
+                       math.sin(self.lan)*math.sin(self.i)])
+        R2n = np.array([math.sin(self.lan)*math.cos(self.parg) 
                     + math.cos(self.lan)*math.sin(self.parg)*math.cos(self.i),
                     (-1.0)*math.sin(self.lan)*math.sin(self.parg) 
                     + math.cos(self.lan)*math.cos(self.parg)*math.cos(self.i),
-                    (-1.0)*math.cos(self.lan)*math.sin(self.i)]
-        R3n = np.array[math.sin(self.parg)*math.sin(self.i),
+                    (-1.0)*math.cos(self.lan)*math.sin(self.i)])
+        R3n = np.array([math.sin(self.parg)*math.sin(self.i),
                     math.cos(self.parg)*math.sin(self.i),
-                    math.cos(self.i)]
-        R = np.array[R1n, R2n, R3n]
+                    math.cos(self.i)])
+        R = np.array([R1n, R2n, R3n])
 
         # eccentricity vector
-        self.ev = np.dot(R, np.array[[1.0], [0.0], [0.0]]) * self.e
+        self.ev = (np.dot(R, np.array([[1.0], [0.0], [0.0]]))).T[0] * self.e
         # angular momentum vector
         h = math.sqrt(self.p * self.mu)
-        self.hv = np.dot(R, np.array[[0.0], [0.0], [1.0]]) * h
-        nv = np.dot(R, np.array[[0.0], [1.0], [0.0]])
-        print('ev=', self.ev)
-        print('hv=', self.hv)
+        self.hv = (np.dot(R, np.array([[0.0], [0.0], [1.0]]))).T[0] * h
+        nv = (np.dot(R, np.array([[0.0], [1.0], [0.0]]))).T[0]
         
         # ta0, T, ma
         if TAoE is not None:
@@ -336,10 +335,10 @@ class TwoBodyOrbit:
         if e != 0.0:
             self.pos, self.vel = self.posvel(self.ta0)
         else:
-            r = np.array[[math.cos(self.ta0)], [math.sin(self.ta0)], [0.0]] * self.a
-            self.pos = np.dot(R, r)
-            v = np.array[[(-1.0)*math.sin(self.ta0)], [math.cos(self.ta0)], [0.0]] * math.sqrt(self.mu / self.a)
-            self.vel = np.dot(R, v)
+            r = np.array([[math.cos(self.ta0)], [math.sin(self.ta0)], [0.0]]) * self.a
+            self.pos = (np.dot(R, r).T)[0]
+            v = np.array([[(-1.0)*math.sin(self.ta0)], [math.cos(self.ta0)], [0.0]]) * math.sqrt(self.mu / self.a)
+            self.vel = (np.dot(R, v).T)[0]
     
     def points(self, ndata):
         """Returns points on orbital trajectory for visualization
@@ -490,6 +489,7 @@ class TwoBodyOrbit:
         
         Returns:
             kepl: Dictionary of orbital elements.
+                'epoch': Epoch
                 'a': Semimajor axis
                 'e': Eccentricity
                 'i': Inclination in degrees

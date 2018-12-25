@@ -8,7 +8,6 @@ Created on Fri Dec 14 08:44:47 2018
 import numpy as np
 import tkinter
 from pytwobodyorbit import TwoBodyOrbit
-from pytwobodyorbit import lambert
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import matplotlib
@@ -19,7 +18,7 @@ import matplotlib
 mu = 1.32712440041e20
 
 # Create instance of TwoBodyOrbit
-orbit = TwoBodyOrbit('object')
+orbit = TwoBodyOrbit('object', mmu=mu)
 
 # Seconds of a day
 secofday = 86400.0
@@ -62,25 +61,29 @@ class TestConvert(tkinter.Frame):
         self.Lspace0 = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace0.grid(row=0, column=0)
 
-        self.comment = tkinter.Text(self, width=80, height=19, wrap=tkinter.WORD)
-        scom = """This program demonstrates the module 'pytwobodyorbit'.
+        self.comment = tkinter.Text(self, width=80, height=23, wrap=tkinter.WORD)
+        scom = """This program demonstrates the 'TwoBodyOrbit' class of 'pytwobodyorbit'.
 
-The 'lambert' function solves so-called 'Lambert's Probrem'.  It computes a 
-two-body orbit of an object from its initial position (P1), terminal position 
-(P2), and flight time from P1 to P2; it yields initial velocity and terminal 
-velocity of the object.
+An instance of the 'TwoBodyOrbit' can be set the orbital parameters of an
+object by classical orbital elements (a, e, i, etc) or by Cartesian orbital 
+elements (position and velocity), and it can outputs Cartesian orbital elements
+and classical orbital elements of the orbit.
 
-In this program, we use the Sun as the central body; the unit of length is 
-meters, and the unit of time is days for input/output.  
-Note that unit of a velocity is meters per second.
+In this program, we can converts a set of classical orbital elements of an
+object, which is orbiting around the Sun, into a set of Cartesian orbital 
+elements, and vice versa.  In addition, we can see the orbit as a drawing on 
+the 3D chart.
 
 USAGE:
-Edit coordinates of P1 and P2, and flight time, and click [Compute Pro. Orb] 
-button for prograde orbit, or [Compute Retro. Orb] for retrograde orbit.
+Edit one set of the orbital elements and click one of the buttons to convert,
+[To Cartesian ⇒] or [⇐ To Classical].
+Edit one of the 'Time (t)' input field, and click one of the buttons to draw,
+[Draw from Classical Elements] or [Draw from Cartesian Elements].
 
-This program shows initial velocity and terminal velocity of the object. It 
-shows classical orbital elements, and residuals of terminating position and 
-velocity.  In addition, it shows the orbit in the 3D chart.
+UNITS:
+Length - meters
+Velocity - meters per second
+Time - days
 """
 
         self.comment.insert(1.0, scom)
@@ -95,13 +98,13 @@ velocity.  In addition, it shows the orbit in the 3D chart.
         
         self.KE_d = [
                 'Epoch  ',
-                'Semi-major axis (a)  ',
+                'Semi-maj. axis (a)  ',
                 'Eccentricity (e)  ',
                 'Inclination (i)  ',
-                'Longitude of AN (LoAN)  ',
-                'Argument of P (AoP)  '
+                'Long. of AN (LoAN)  ',
+                'Arg. of P (AoP)  ',
                 'True anomaly (TA)  ',
-                'Periapsis psg (T)  ',
+                'Peri. pasg (T)  ',
                 'Mean anomaly (MA)  ']
         self.KE_v = [
                 '0.000000',
@@ -122,7 +125,7 @@ velocity.  In addition, it shows the orbit in the 3D chart.
             self.KE_L[j].grid(row=j+4, column=0, sticky=tkinter.E)
             self.KE_SV.append(tkinter.StringVar(value=self.KE_v[j]))
             self.KE_E.append(tkinter.Entry(self, bd=1, textvariable=self.KE_SV[j]))
-            self.KE_E[j].grid(row=j+4, column=1, sticky=tkinter.W)
+            self.KE_E[j].grid(row=j+4, column=1, sticky=tkinter.E)
 
         self.Ltitle2 = tkinter.Label(self, text='Cartesian Orbital Elements')
         self.Ltitle2.grid(row=3, column=3, columnspan=2)
@@ -150,51 +153,112 @@ velocity.  In addition, it shows the orbit in the 3D chart.
 
         for j in range(7):
             self.CE_L.append(tkinter.Label(self, text=self.CE_d[j]))
-            self.CE_L[j].grid(row=j+4, column=3, sticky=tkinter.W)
+            self.CE_L[j].grid(row=j+4, column=4, sticky=tkinter.W)
             self.CE_SV.append(tkinter.StringVar(value=self.CE_v[j]))
             self.CE_E.append(tkinter.Entry(self, bd=1, textvariable=self.CE_SV[j]))
-            self.CE_E[j].grid(row=j+4, column=4, sticky=tkinter.E)
+            self.CE_E[j].grid(row=j+4, column=3, sticky=tkinter.W)
 
-        self.Lspace3 = tkinter.Label(self, text=' ', font=('Times', 4))
+        self.K2C = tkinter.Button(self, width=15)
+        self.K2C['text'] = '     To Cartesian ⇒'
+        self.K2C['command'] = self.toCartesian
+        self.K2C.grid(row=4, column=2, padx=3)
+
+        self.C2K = tkinter.Button(self, width=15)
+        self.C2K['text'] = '⇐ To Classical     '
+        self.C2K['command'] = self.toClassical
+        self.C2K.grid(row=5, column=2)
+        
+        self.cError = tkinter.Label(self, text=' ',
+             anchor=tkinter.NW, justify=tkinter.LEFT, width=15, height=8, 
+             font=('Arial',9,'bold'), wraplength=110)
+        self.cError.grid(row=6, column=2, rowspan=5)
+        
+
+        self.Lspace3 = tkinter.Label(self, text=' ')
         self.Lspace3.grid(row=15, column=0)
 
-
-
-
+        self.Kt_L = tkinter.Label(self, text='Time (t)  ')
+        self.Kt_L.grid(row=16, column=0, sticky=tkinter.E)
+        self.Kt_SV = tkinter.StringVar(value='100.0')
+        self.Kt_E = tkinter.Entry(self, bd=1, textvariable=self.Kt_SV)
+        self.Kt_E.grid(row=16, column=1, sticky=tkinter.E)
         
-        
-        
+        self.Ct_L = tkinter.Label(self, text='  Time (t)')
+        self.Ct_L.grid(row=16, column=4, sticky=tkinter.W)
+        self.Ct_SV = tkinter.StringVar(value='100.0')
+        self.Ct_E = tkinter.Entry(self, bd=1, textvariable=self.Ct_SV)
+        self.Ct_E.grid(row=16, column=3, sticky=tkinter.W)
 
         self.Lspace4 = tkinter.Label(self, text=' ', font=('Times', 4))
-        self.Lspace4.grid(row=12, column=0)
+        self.Lspace4.grid(row=17, column=0)
         
-        self.solve_Lam_p = tkinter.Button(self)
-        self.solve_Lam_p['text'] = ' Compute Pro. Orb. '
-        self.solve_Lam_p['command'] = self.prograde
-        self.solve_Lam_p.grid(row=13, column=1, sticky=tkinter.W)
+        self.DfK = tkinter.Button(self)
+        self.DfK['text'] = '  Draw from Classical Elements  '
+        self.DfK['command'] = self.drawClassical
+        self.DfK.grid(row=18, column=0, columnspan=2, sticky=tkinter.E)
         
-        self.solve_Lam_r = tkinter.Button(self)
-        self.solve_Lam_r['text'] = ' Compute Retro. Orb. '
-        self.solve_Lam_r['command'] = self.retrograde
-        self.solve_Lam_r.grid(row=13, column=2, sticky=tkinter.W)
-        
-        self.Lspace5 = tkinter.Label(self, text=' ', font=('Arial',9,'bold'))
-        self.Lspace5.grid(row=14, column=0, columnspan=3)
+        self.DfC = tkinter.Button(self)
+        self.DfC['text'] = '  Draw from Cartesian Elements  '
+        self.DfC['command'] = self.drawCartesian
+        self.DfC.grid(row=18, column=3, columnspan=2, sticky=tkinter.W)
 
-        self.Lspace6 = tkinter.Label(self, text=' ', font=('Times', 4))
+        self.Lspace6 = tkinter.Label(self, text=' ')
         self.Lspace6.grid(row=29, column=0)
         
         self.quitapp = tkinter.Button(self)
         self.quitapp['text'] = '    Quit    '
         self.quitapp['command'] = self.master.destroy
-        self.quitapp.grid(row=30, column=2)
+        self.quitapp.grid(row=30, column=4)
         
-    def prograde(self):
-        self.compute(prog=True)
+    def toCartesian(self):
+        classical = []
+        for j in range(7):
+            classical.append(float(self.KE_SV[j].get()))
+        classical[0] *= secofday    # convert to seconds
+        try:
+            orbit.setOrbKepl(*classical)
+        except ValueError as ve:
+            self.cError['text'] = ve.args[0]
+            return
         
-    def retrograde(self):
-        self.compute(prog=False)
+        self.cError['text'] = ' '
+        pos, vel = orbit.posvelatt(classical[0])  # pos, vel at epoch
+        self.CE_SV[0].set(str(classical[0] / secofday))
+        for j in range(3):
+            self.CE_SV[j+1].set(str(pos[j]))
+            self.CE_SV[j+4].set(str(vel[j]))
         
+    def toClassical(self):
+        cartesian = []
+        for j in range(7):
+            cartesian.append(float(self.CE_SV[j].get()))
+        cartesian[0] *= secofday    # convert to seconds
+        try:
+            orbit.setOrbCart(cartesian[0], cartesian[1:4], cartesian[4:7])
+        except ValueError as ve:
+            self.cError['text'] = ve.args[0]
+            return
+        
+        self.cError['text'] = ' '
+        kepl = orbit.elmKepl()      # pos, vel at epoch
+        self.KE_SV[0].set(str(kepl['epoch'] / secofday))
+        self.KE_SV[1].set(str(kepl['a']))
+        self.KE_SV[2].set(str(kepl['e']))
+        self.KE_SV[3].set(str(kepl['i']))
+        self.KE_SV[4].set(str(kepl['LoAN']))
+        self.KE_SV[5].set(str(kepl['AoP']))
+        self.KE_SV[6].set(str(kepl['TA']))
+        
+    def drawCartesian(self):
+        pass
+    
+    def drawClassical(self):
+        pass
+
+    def draw(self, t):
+        pass
+
+
 
     def compute(self, prog=True):
         # Clicking of the button [Compute and Draw] runs this method
