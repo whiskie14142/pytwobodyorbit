@@ -213,7 +213,11 @@ class TwoBodyOrbit:
         TAoE = TA
         ma = MA
         
+        self._setOrb = False
+        
         if e > 1.0 and a > 0.0:
+            raise ValueError('Invalid Orbital Element(s) in setOrbKepl')
+        if e <= 1.0 and a <= 0.0:
             raise ValueError('Invalid Orbital Element(s) in setOrbKepl')
         if e >= 1.0 and TAoE is None and T is None:
             raise ValueError('Missing Orbital Element: TA or T in setOrbKepl')

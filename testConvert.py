@@ -185,8 +185,8 @@ class TestConvert(tkinter.Frame):
         self.DfC['command'] = self.drawCartesian
         self.DfC.grid(row=18, column=3, columnspan=2, sticky=tkinter.W)
 
-        self.Lspace6 = tkinter.Label(self, text=' ')
-        self.Lspace6.grid(row=29, column=0)
+        self.dError = tkinter.Label(self, text=' ', font=('Arial',9,'bold'))
+        self.dError.grid(row=29, column=0, columnspan=5)
         
         self.quitapp = tkinter.Button(self)
         self.quitapp['text'] = '    Quit    '
@@ -233,112 +233,74 @@ class TestConvert(tkinter.Frame):
         self.KE_SV[6].set('{: 12.9f}'.format(kepl['TA']))
         
     def drawCartesian(self):
-        pass
+        cartesian = []
+        for j in range(7):
+            cartesian.append(float(self.CE_SV[j].get()))
+        cartesian[0] *= secofday    # convert to seconds
+        try:
+            orbit.setOrbCart(cartesian[0], cartesian[1:4], cartesian[4:7])
+        except ValueError as ve:
+            self.dError['text'] = ve.args[0]
+            return
+        self.dError['text'] = ' '
+        
+        t = float(self.Ct_SV.get()) * secofday
+        self.draw(cartesian[0], t)
     
     def drawClassical(self):
-        pass
-
-    def draw(self, t):
-        pass
-
-
-
-    def compute(self, prog=True):
-        # Clicking of the button [Compute and Draw] runs this method
+        classical = []
+        for j in range(7):
+            classical.append(float(self.KE_SV[j].get()))
+        classical[0] *= secofday    # convert to seconds
+        try:
+            orbit.setOrbKepl(*classical)
+        except ValueError as ve:
+            self.dError['text'] = ve.args[0]
+            return
+        self.dError['text'] = ' '
         
-        # Get initiating position
-        pos1 = np.array([float(self.pos1_X.get()), float(self.pos1_Y.get()),
-                         float(self.pos1_Z.get())])
-                         
-        # Get terminating position
-        pos2 = np.array([float(self.pos2_X.get()), float(self.pos2_Y.get()),
-                         float(self.pos2_Z.get())])
-                         
-        ps = np.array([pos1, pos2, [0.0, 0.0, 0.0]]).T
-        
+        t = float(self.Kt_SV.get()) * secofday
+        self.draw(classical[0], t)
+
+    def draw(self, epoch, t):
+        # Erase mark and line
         if self.arsc is not None:
             self.arsc.remove()
             for j in range(3):
                 self.arname[j].remove()
-                
+            self.arsc = None
+        if self.arline is not None:
+            self.arline[0].remove()
+            self.arline = None
+            
+        try:
+            # Position at Epoch
+            pos1, vel1 = orbit.posvelatt(epoch)
+            # Position at t
+            pos2, vel2 = orbit.posvelatt(t)
+        except RuntimeError as re:
+            self.dError['text'] = re.args[0]
+            return
+        self.dError['text'] = ' '
+        
+        ps = np.array([pos1, pos2, np.zeros(3)]).T
+        
+        # Draw marks
         self.arsc = ax.scatter(ps[0], ps[1], ps[2], marker='+', color='b')
         for j in range(3):
             self.arname[j] = ax.text(ps[0, j], ps[1, j], ps[2, j], 
                              self.object[j], color='b', fontsize=9)
-        
-        # Get flight time (days) and convert into seconds
-        duration = float(self.ftime.get()) * secofday
-        self.Lspace5['text'] = ' '
-        try:
-            # Compute initial and terminal velocity with solveGauss.
-            # You may try ccw=False.
-            ivel, tvel = lambert(pos1, pos2, duration, mu, ccw=prog)
-        except ValueError:
-            self.Lspace5['text'] = 'solveGauss() could not compute initial/terminal velocity. Try different parameters.'
-            return
 
-        
-        sivel = 'Initial Velocity (meters per second) = ' + str(ivel)
-        self.Livel = tkinter.Label(self, text=sivel, width=80, anchor=tkinter.W)
-        self.Livel.grid(row=15, column=0, columnspan=3, sticky=tkinter.W)
-        stvel = 'Terminate Velocity (meters per second) = ' +str(tvel)
-        self.Ltvel = tkinter.Label(self, text=stvel, width=80, anchor=tkinter.W)
-        self.Ltvel.grid(row=16, column=0, columnspan=3, sticky=tkinter.W)
-
-        # Define orbit from epoch, initiating position, and initial velocity
-        orbit.setOrbCart(0.0, pos1, ivel)
-        
-        # Get Classical orbital elements and show them
-        # Convert unit of time to seconds
-        kepl = orbit.elmKepl()
-        skepl = 'Classical Orbital Elements'
-        for ix in kepl:
-            skepl = skepl + '\n    ' + ix + ' = '
-            if ix == 'T' or ix == 'P':
-                if kepl[ix] is None:
-                    skepl = skepl + 'None'
-                else:
-                    skepl = skepl + str(kepl[ix] / secofday) 
-            elif ix == 'MA':
-                if kepl[ix] is None:
-                    skepl = skepl + 'None'
-                else:
-                    skepl = skepl + str(kepl[ix]) 
-            elif ix == 'n':
-                if kepl[ix] is None:
-                    skepl = skepl + 'None'
-                else:
-                    skepl = skepl + str(kepl[ix] * secofday) 
-            else:
-                skepl = skepl + str(kepl[ix])
-            skepl = skepl + '                                '
-        self.Lkepl = tkinter.Label(self, text=skepl, justify=tkinter.LEFT, anchor=tkinter.NW, height=12)
-        self.Lkepl.grid(row=17, column=0, columnspan=3, sticky=tkinter.W)
-        
         # Get points on orbit
         x, y, z, t = orbit.points(1001)
         
-        # Plot an orbital line
-        if self.arline is not None:
-            self.arline[0].remove()
+        # Draw an orbital line
         self.arline = ax.plot(x, y, z, color='r', lw=0.75)
         plt.draw()
-        
-        # Get predicted position and velocity at the end of the flight
-        predpos, predvel = orbit.posvelatt(duration)
-        
-        # Compute residuals of positions and velocities at the terminating point
-        sdpos = 'Residuals in position (meters) = ' + str(pos2 - predpos)
-        self.Ldpos = tkinter.Label(self, text=sdpos, width=80, anchor=tkinter.W)
-        self.Ldpos.grid(row=19, column=0, columnspan=3, sticky=tkinter.W)
-        sdvel = 'Residuals in velocity (meters per second) = ' + str(tvel - predvel)
-        self.Ldvel = tkinter.Label(self, text=sdvel, width=80, anchor=tkinter.W)
-        self.Ldvel.grid(row=20, column=0, columnspan=3, sticky=tkinter.W)
 
-    
 if __name__ == '__main__':
     mw =tkinter.Tk()
     mw.title("Demonstrate pytwobodyorbit")
-    mw.geometry('600x830+10+10')
+    mw.geometry('600x710+10+10')
     app = TestConvert(master=mw)
     app.mainloop()

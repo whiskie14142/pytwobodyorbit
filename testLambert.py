@@ -67,7 +67,7 @@ class TestLambert(tkinter.Frame):
         scom = "This program demonstrates 'lambert' function of the module 'pytwobodyorbit'.\n\n" + \
             "The 'lambert' function solves so-called 'Lambert's Probrem'.  It computes a two-body orbit of an object from its initial position (P1), terminal position (P2), and flight time from P1 to P2; it yields initial velocity and terminal velocity of the object.\n\n" + \
             "In this program, we use the Sun as the central body.  The program shows initial velocity and terminal velocity of the object. It shows classical orbital elements, and residuals of terminating position and velocity.  In addition, it shows the orbit in the 3D chart.\n\n" + \
-            "USAGE:\nEdit coordinates of P1 and P2, and flight time, and click [Compute Pro. Orb] button for direct (prograde) orbit, or [Compute Retro. Orb] for retrograde orbit.\n\n" + \
+            "USAGE:\nEdit coordinates of P1 and P2, and flight time, and click [Compute Prograde Orb] button for direct (prograde) orbit, or [Compute Retrograde Orb] for retrograde orbit.\n\n" + \
             "UNITS:\nLength - meters\nVelocity - meters per second\nTime - days"
 
         self.comment.insert(1.0, scom)
@@ -127,12 +127,12 @@ class TestLambert(tkinter.Frame):
         self.Lspace4.grid(row=12, column=0)
         
         self.solve_Lam_p = tkinter.Button(self)
-        self.solve_Lam_p['text'] = ' Compute Pro. Orb. '
+        self.solve_Lam_p['text'] = ' Compute Prograde Orb '
         self.solve_Lam_p['command'] = self.prograde
         self.solve_Lam_p.grid(row=13, column=1, sticky=tkinter.W)
         
         self.solve_Lam_r = tkinter.Button(self)
-        self.solve_Lam_r['text'] = ' Compute Retro. Orb. '
+        self.solve_Lam_r['text'] = ' Compute Retrograde Orb '
         self.solve_Lam_r['command'] = self.retrograde
         self.solve_Lam_r.grid(row=13, column=2, sticky=tkinter.W)
         
@@ -165,7 +165,7 @@ class TestLambert(tkinter.Frame):
         pos2 = np.array([float(self.pos2_X.get()), float(self.pos2_Y.get()),
                          float(self.pos2_Z.get())])
                          
-        ps = np.array([pos1, pos2, [0.0, 0.0, 0.0]]).T
+        ps = np.array([pos1, pos2, np.zeros(3)]).T
         
         if self.arsc is not None:
             self.arsc.remove()
