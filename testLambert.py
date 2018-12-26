@@ -62,26 +62,13 @@ class TestLambert(tkinter.Frame):
         self.Lspace0 = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace0.grid(row=0, column=0)
 
-        self.comment = tkinter.Text(self, width=80, height=19, wrap=tkinter.WORD)
-        scom = """This program demonstrates 'lambert' function of the module 'pytwobodyorbit'.
-
-The 'lambert' function solves so-called 'Lambert's Probrem'.  It computes a 
-two-body orbit of an object from its initial position (P1), terminal position 
-(P2), and flight time from P1 to P2; it yields initial velocity and terminal 
-velocity of the object.
-
-In this program, we use the Sun as the central body; the unit of length is 
-meters, and the unit of time is days for input/output.  
-Note that unit of a velocity is meters per second.
-
-USAGE:
-Edit coordinates of P1 and P2, and flight time, and click [Compute Pro. Orb] 
-button for prograde orbit, or [Compute Retro. Orb] for retrograde orbit.
-
-This program shows initial velocity and terminal velocity of the object. It 
-shows classical orbital elements, and residuals of terminating position and 
-velocity.  In addition, it shows the orbit in the 3D chart.
-"""
+        self.comment = tkinter.Text(self, width=80, height=19, 
+                        font=('Helvetica', 10), wrap=tkinter.WORD)
+        scom = "This program demonstrates 'lambert' function of the module 'pytwobodyorbit'.\n\n" + \
+            "The 'lambert' function solves so-called 'Lambert's Probrem'.  It computes a two-body orbit of an object from its initial position (P1), terminal position (P2), and flight time from P1 to P2; it yields initial velocity and terminal velocity of the object.\n\n" + \
+            "In this program, we use the Sun as the central body.  The program shows initial velocity and terminal velocity of the object. It shows classical orbital elements, and residuals of terminating position and velocity.  In addition, it shows the orbit in the 3D chart.\n\n" + \
+            "USAGE:\nEdit coordinates of P1 and P2, and flight time, and click [Compute Pro. Orb] button for direct (prograde) orbit, or [Compute Retro. Orb] for retrograde orbit.\n\n" + \
+            "UNITS:\nLength - meters\nVelocity - meters per second\nTime - days"
 
         self.comment.insert(1.0, scom)
         self.comment['state'] = tkinter.DISABLED
@@ -92,19 +79,19 @@ velocity.  In addition, it shows the orbit in the 3D chart.
         
         self.L1_X = tkinter.Label(self, text='Initial Position: P1(X)  ')
         self.L1_X.grid(row=3, column=0, sticky=tkinter.E)
-        self.pos1_X = tkinter.StringVar(value='1.500000e11')
+        self.pos1_X = tkinter.StringVar(value=' 1.50000000000e+11')
         self.Epos1_X = tkinter.Entry(self, bd=1, textvariable=self.pos1_X)
         self.Epos1_X.grid(row=3, column=1, sticky=tkinter.W)
         
         self.L1_Y = tkinter.Label(self, text='Initial Position: P1(Y)  ')
         self.L1_Y.grid(row=4, column=0, sticky=tkinter.E)
-        self.pos1_Y = tkinter.StringVar(value='0.000000e11')
+        self.pos1_Y = tkinter.StringVar(value=' 0.00000000000e+11')
         self.Epos1_Y = tkinter.Entry(self, bd=1, textvariable=self.pos1_Y)
         self.Epos1_Y.grid(row=4, column=1, sticky=tkinter.W)
         
         self.L1_Z = tkinter.Label(self, text='Initial Position: P1(Z)  ')
         self.L1_Z.grid(row=5, column=0, sticky=tkinter.E)
-        self.pos1_Z = tkinter.StringVar(value='0.000000e11')
+        self.pos1_Z = tkinter.StringVar(value=' 0.00000000000e+11')
         self.Epos1_Z = tkinter.Entry(self, bd=1, textvariable=self.pos1_Z)
         self.Epos1_Z.grid(row=5, column=1, sticky=tkinter.W)
         
@@ -113,17 +100,17 @@ velocity.  In addition, it shows the orbit in the 3D chart.
         
         self.L2_X = tkinter.Label(self, text='Terminal Position: P2(X)  ')
         self.L2_X.grid(row=7, column=0, sticky=tkinter.E)
-        self.pos2_X = tkinter.StringVar(value='-0.500000e11')
+        self.pos2_X = tkinter.StringVar(value='-0.50000000000e+11')
         self.Epos2_X = tkinter.Entry(self, bd=1, textvariable=self.pos2_X)
         self.Epos2_X.grid(row=7, column=1, sticky=tkinter.W)
         self.L2_Y = tkinter.Label(self, text='Terminal Position: P2(Y)  ')
         self.L2_Y.grid(row=8, column=0, sticky=tkinter.E)
-        self.pos2_Y = tkinter.StringVar(value='1.300000e11')
+        self.pos2_Y = tkinter.StringVar(value=' 1.30000000000e+11')
         self.Epos2_Y = tkinter.Entry(self, bd=1, textvariable=self.pos2_Y)
         self.Epos2_Y.grid(row=8, column=1, sticky=tkinter.W)
         self.L2_Z = tkinter.Label(self, text='Terminal Position: P2(Z)  ')
         self.L2_Z.grid(row=9, column=0, sticky=tkinter.E)
-        self.pos2_Z = tkinter.StringVar(value='0.400000e11')
+        self.pos2_Z = tkinter.StringVar(value=' 0.40000000000e+11')
         self.Epos2_Z = tkinter.Entry(self, bd=1, textvariable=self.pos2_Z)
         self.Epos2_Z.grid(row=9, column=1, sticky=tkinter.W)
         
@@ -132,7 +119,7 @@ velocity.  In addition, it shows the orbit in the 3D chart.
         
         self.Ltime = tkinter.Label(self, text='Flight Time (days)  ')
         self.Ltime.grid(row=11, column=0, sticky=tkinter.E)
-        self.ftime = tkinter.StringVar(value='100.0')
+        self.ftime = tkinter.StringVar(value=' 100.0')
         self.Eftime = tkinter.Entry(self, bd=1, textvariable=self.ftime)
         self.Eftime.grid(row=11, column=1, sticky=tkinter.W)
 
@@ -158,7 +145,7 @@ velocity.  In addition, it shows the orbit in the 3D chart.
         self.quitapp = tkinter.Button(self)
         self.quitapp['text'] = '    Quit    '
         self.quitapp['command'] = self.master.destroy
-        self.quitapp.grid(row=30, column=2)
+        self.quitapp.grid(row=30, column=2, sticky=tkinter.E)
         
     def prograde(self):
         self.compute(prog=True)
@@ -198,7 +185,7 @@ velocity.  In addition, it shows the orbit in the 3D chart.
             # You may try ccw=False.
             ivel, tvel = lambert(pos1, pos2, duration, mu, ccw=prog)
         except ValueError:
-            self.Lspace5['text'] = 'solveGauss() could not compute initial/terminal velocity. Try different parameters.'
+            self.Lspace5['text'] = "'lambert' function could not compute initial/terminal velocity.  Try different parameters."
             return
 
         
@@ -215,27 +202,28 @@ velocity.  In addition, it shows the orbit in the 3D chart.
         # Get Classical orbital elements and show them
         # Convert unit of time to seconds
         kepl = orbit.elmKepl()
-        skepl = 'Classical Orbital Elements'
-        for ix in kepl:
-            skepl = skepl + '\n    ' + ix + ' = '
-            if ix == 'T' or ix == 'P':
-                if kepl[ix] is None:
-                    skepl = skepl + 'None'
-                else:
-                    skepl = skepl + str(kepl[ix] / secofday) 
-            elif ix == 'MA':
-                if kepl[ix] is None:
-                    skepl = skepl + 'None'
-                else:
-                    skepl = skepl + str(kepl[ix]) 
-            elif ix == 'n':
-                if kepl[ix] is None:
-                    skepl = skepl + 'None'
-                else:
-                    skepl = skepl + str(kepl[ix] * secofday) 
-            else:
-                skepl = skepl + str(kepl[ix])
-            skepl = skepl + '                                '
+        skepl = 'Classical Orbital Elements' + \
+            '\n    epoch = ' + '{:.6f}'.format(kepl['epoch'] / secofday) + \
+            '\n    a = ' + '{:.11e}'.format(kepl['a']) + \
+            '\n    e = ' + '{:.11f}'.format(kepl['e']) + \
+            '\n    i = ' + '{:12.9f}'.format(kepl['i']) + \
+            '\n    LoAN = ' + '{:12.9f}'.format(kepl['LoAN']) + \
+            '\n    AoP = ' + '{:12.9f}'.format(kepl['AoP']) + \
+            '\n    TA = ' + '{:12.9f}'.format(kepl['TA']) + \
+            '\n    T = ' + '{:12.9f}'.format(kepl['T'] / secofday)
+        if kepl['MA'] is None:
+            skepl = skepl + '\n    MA = None' 
+        else:
+            skepl = skepl + '\n    MA = ' + '{:12.9f}'.format(kepl['MA'])
+        if kepl['n'] is None:
+            skepl = skepl + '\n    n = None'
+        else:
+            skepl = skepl + '\n    n = ' + '{:12.9f}'.format(kepl['n'] * secofday)
+        if kepl['P'] is None:
+            skepl = skepl + '\n    P = None'
+        else:
+            skepl = skepl + '\n    P = ' + '{:12.9f}'.format(kepl['P'] / secofday)
+        skepl = skepl + '                                '
         self.Lkepl = tkinter.Label(self, text=skepl, justify=tkinter.LEFT, anchor=tkinter.NW, height=12)
         self.Lkepl.grid(row=17, column=0, columnspan=3, sticky=tkinter.W)
         
@@ -263,6 +251,6 @@ velocity.  In addition, it shows the orbit in the 3D chart.
 if __name__ == '__main__':
     mw =tkinter.Tk()
     mw.title("Demonstrate 'lambert' function of pytwobodyorbit")
-    mw.geometry('600x830+10+10')
+    mw.geometry('600x880+10+10')
     app = TestLambert(master=mw)
     app.mainloop()

@@ -61,30 +61,13 @@ class TestConvert(tkinter.Frame):
         self.Lspace0 = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace0.grid(row=0, column=0)
 
-        self.comment = tkinter.Text(self, width=80, height=23, wrap=tkinter.WORD)
-        scom = """This program demonstrates the 'TwoBodyOrbit' class of 'pytwobodyorbit'.
-
-An instance of the 'TwoBodyOrbit' can be set the orbital parameters of an
-object by classical orbital elements (a, e, i, etc) or by Cartesian orbital 
-elements (position and velocity), and it can outputs Cartesian orbital elements
-and classical orbital elements of the orbit.
-
-In this program, we can converts a set of classical orbital elements of an
-object, which is orbiting around the Sun, into a set of Cartesian orbital 
-elements, and vice versa.  In addition, we can see the orbit as a drawing on 
-the 3D chart.
-
-USAGE:
-Edit one set of the orbital elements and click one of the buttons to convert,
-[To Cartesian ⇒] or [⇐ To Classical].
-Edit one of the 'Time (t)' input field, and click one of the buttons to draw,
-[Draw from Classical Elements] or [Draw from Cartesian Elements].
-
-UNITS:
-Length - meters
-Velocity - meters per second
-Time - days
-"""
+        self.comment = tkinter.Text(self, width=80, height=21, 
+                        font=('Helvetica', 10), wrap=tkinter.WORD)
+        scom = "This program demonstrates the 'TwoBodyOrbit' class of 'pytwobodyorbit'.\n\n" + \
+            "An instance of the 'TwoBodyOrbit' can be set the orbital parameters of an object by classical orbital elements (a, e, i, etc.) or by Cartesian orbital elements (position and velocity), and it can outputs Cartesian orbital elements and classical orbital elements of the orbit.\n\n" + \
+            "In this program, we can converts a set of classical orbital elements of an object, which is orbiting around the Sun, into a set of Cartesian orbital elements, and vice versa.  In addition, we can see the orbit as a drawing on the 3D chart.\n\n" + \
+            "USAGE:\nEdit one set of the orbital elements and click one of the buttons to convert, [To Cartesian ⇒] or [⇐ To Classical].\nEdit one of the 'Time (t)' input field, and click one of the buttons to draw, [Draw from Classical Elements] or [Draw from Cartesian Elements].\n\n" + \
+            "UNITS:\nLength - meters\nVelocity - meters per second\nTime - days"
 
         self.comment.insert(1.0, scom)
         self.comment['state'] = tkinter.DISABLED
@@ -107,13 +90,13 @@ Time - days
                 'Peri. pasg (T)  ',
                 'Mean anomaly (MA)  ']
         self.KE_v = [
-                '0.000000',
-                '1.500000e11',
-                '0.200000',
-                '15.000000',
-                '60.000000',
-                '135.000000',
-                '70.000000',
+                ' 0.000000',
+                ' 1.50000000000e+11',
+                ' 0.20000000000',
+                ' 15.000000000',
+                ' 60.000000000',
+                ' 135.000000000',
+                ' 70.000000000',
                 'None',
                 'None']
         self.KE_L = []
@@ -139,13 +122,13 @@ Time - days
                 '  Velocity YD',
                 '  Velocity ZD']
         self.CE_v = [
-                '0.000000',
-                '1.000000e11',
-                '1.200000e11',
-                '0.200000e11',
-                '-20000.00',
-                '18000.00',
-                '0.000000']
+                ' 0.000000',
+                ' 1.00000000000e+11',
+                ' 1.20000000000e+11',
+                ' 0.20000000000e+11',
+                '-2.00000000000e+04',
+                ' 1.80000000000e+04',
+                ' 0.00000000000e+00']
 
         self.CE_L = []
         self.CE_SV = []
@@ -223,10 +206,10 @@ Time - days
         
         self.cError['text'] = ' '
         pos, vel = orbit.posvelatt(classical[0])  # pos, vel at epoch
-        self.CE_SV[0].set(str(classical[0] / secofday))
+        self.CE_SV[0].set('{: .6f}'.format(classical[0] / secofday))
         for j in range(3):
-            self.CE_SV[j+1].set(str(pos[j]))
-            self.CE_SV[j+4].set(str(vel[j]))
+            self.CE_SV[j+1].set('{: .11e}'.format(pos[j]))
+            self.CE_SV[j+4].set('{: .11e}'.format(vel[j]))
         
     def toClassical(self):
         cartesian = []
@@ -241,13 +224,13 @@ Time - days
         
         self.cError['text'] = ' '
         kepl = orbit.elmKepl()      # pos, vel at epoch
-        self.KE_SV[0].set(str(kepl['epoch'] / secofday))
-        self.KE_SV[1].set(str(kepl['a']))
-        self.KE_SV[2].set(str(kepl['e']))
-        self.KE_SV[3].set(str(kepl['i']))
-        self.KE_SV[4].set(str(kepl['LoAN']))
-        self.KE_SV[5].set(str(kepl['AoP']))
-        self.KE_SV[6].set(str(kepl['TA']))
+        self.KE_SV[0].set('{: .6f}'.format(kepl['epoch'] / secofday))
+        self.KE_SV[1].set('{: .11e}'.format(kepl['a']))
+        self.KE_SV[2].set('{: .11f}'.format(kepl['e']))
+        self.KE_SV[3].set('{: 12.9f}'.format(kepl['i']))
+        self.KE_SV[4].set('{: 12.9f}'.format(kepl['LoAN']))
+        self.KE_SV[5].set('{: 12.9f}'.format(kepl['AoP']))
+        self.KE_SV[6].set('{: 12.9f}'.format(kepl['TA']))
         
     def drawCartesian(self):
         pass
