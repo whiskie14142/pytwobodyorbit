@@ -42,7 +42,7 @@ ax.text2D(0.02, 1.00, 'Rotate: move mouse with L button held down', transform=ax
 ax.text2D(0.02, 0.97, 'Zoom: move mouse up/down with R button held down', transform=ax.transAxes)
 
 mngr = plt.get_current_fig_manager()
-mngr.window.setGeometry(640, 50, 600, 600)
+mngr.window.setGeometry(680, 40, 600, 600)
 
 
 class TestConvert(tkinter.Frame):
@@ -61,13 +61,13 @@ class TestConvert(tkinter.Frame):
         self.Lspace0 = tkinter.Label(self, text=' ', font=('Times', 4))
         self.Lspace0.grid(row=0, column=0)
 
-        self.comment = tkinter.Text(self, width=80, height=21, 
+        self.comment = tkinter.Text(self, width=80, height=22, 
                         font=('Helvetica', 10), wrap=tkinter.WORD)
         scom = "This program demonstrates the 'TwoBodyOrbit' class of 'pytwobodyorbit'.\n\n" + \
             "An instance of the 'TwoBodyOrbit' can be set the orbital parameters of an object by classical orbital elements (a, e, i, etc.) or by Cartesian orbital elements (position and velocity), and it can outputs Cartesian orbital elements and classical orbital elements of the orbit.\n\n" + \
-            "In this program, we can converts a set of classical orbital elements of an object, which is orbiting around the Sun, into a set of Cartesian orbital elements, and vice versa.  In addition, we can see the orbit as a drawing on the 3D chart.\n\n" + \
+            "In this program, we can convert a set of classical orbital elements of an object, which is orbiting around the Sun, into a set of Cartesian orbital elements, and vice versa.  In addition, we can see the orbit as a drawing on the 3D chart.\n\n" + \
             "USAGE:\nEdit one set of the orbital elements and click one of the buttons to convert, [To Cartesian ⇒] or [⇐ To Classical].\nEdit one of the 'Time (t)' input field, and click one of the buttons to draw, [Draw from Classical Elements] or [Draw from Cartesian Elements].\n\n" + \
-            "UNITS:\nLength - meters\nVelocity - meters per second\nTime - days"
+            "UNITS:\nLength - meters\nVelocity - meters per second\nTime - days\nAngle - degrees"
 
         self.comment.insert(1.0, scom)
         self.comment['state'] = tkinter.DISABLED
@@ -87,28 +87,35 @@ class TestConvert(tkinter.Frame):
                 'Long. of AN (LoAN)  ',
                 'Arg. of P (AoP)  ',
                 'True anomaly (TA)  ',
-                'Peri. pasg (T)  ',
+                'Periapsis passage (T)  ',
                 'Mean anomaly (MA)  ']
         self.KE_v = [
                 ' 0.000000',
-                ' 1.50000000000e+11',
-                ' 0.20000000000',
+                ' 1.49597870700e+11',
+                ' 0.5000000000',
                 ' 15.000000000',
                 ' 60.000000000',
                 ' 135.000000000',
-                ' 70.000000000',
-                'None',
-                'None']
+                ' 0.000000000',
+                ' 0.000000',
+                ' 0.000000000']
         self.KE_L = []
         self.KE_SV = []
         self.KE_E = []
+        self.radio = tkinter.IntVar()
         
-        for j in range(7):
-            self.KE_L.append(tkinter.Label(self, text=self.KE_d[j]))
+        for j in range(9):
+            if j < 6:
+                self.KE_L.append(tkinter.Label(self, text=self.KE_d[j]))
+            else:
+                self.KE_L.append(tkinter.Radiobutton(self, text=self.KE_d[j], variable=self.radio, value=j, anchor=tkinter.E, command=self.radioclicked))
             self.KE_L[j].grid(row=j+4, column=0, sticky=tkinter.E)
             self.KE_SV.append(tkinter.StringVar(value=self.KE_v[j]))
             self.KE_E.append(tkinter.Entry(self, bd=1, textvariable=self.KE_SV[j]))
             self.KE_E[j].grid(row=j+4, column=1, sticky=tkinter.E)
+        self.KE_L[6].select()
+        self.KE_E[7]['state'] = tkinter.DISABLED
+        self.KE_E[8]['state'] = tkinter.DISABLED
 
         self.Ltitle2 = tkinter.Label(self, text='Cartesian Orbital Elements')
         self.Ltitle2.grid(row=3, column=3, columnspan=2)
@@ -192,18 +199,43 @@ class TestConvert(tkinter.Frame):
         self.quitapp['text'] = '    Quit    '
         self.quitapp['command'] = self.master.destroy
         self.quitapp.grid(row=30, column=4)
+
+    def radioclicked(self):
+        for j in range(6, 9):
+            if j != self.radio.get():
+                self.KE_E[j]['state'] = tkinter.DISABLED
+            else:
+                self.KE_E[j]['state'] = tkinter.NORMAL
+
+
         
     def toCartesian(self):
         classical = []
-        for j in range(7):
+        for j in range(6):
             classical.append(float(self.KE_SV[j].get()))
         classical[0] *= secofday    # convert to seconds
-        try:
-            orbit.setOrbKepl(*classical)
-        except ValueError as ve:
-            self.cError['text'] = ve.args[0]
-            return
         
+        if self.radio.get() == 6:
+            ta = float(self.KE_SV[6].get())
+            try:
+                orbit.setOrbKepl(*classical[0:6], TA=ta)
+            except ValueError as ve:
+                self.cError['text'] = ve.args[0]
+                return
+        elif self.radio.get() ==7:
+            t = float(self.KE_SV[7].get()) * secofday
+            try:
+                orbit.setOrbKepl(*classical[0:6], T=t)
+            except ValueError as ve:
+                self.cError['text'] = ve.args[0]
+                return
+        else:
+            ma = float(self.KE_SV[8].get())
+            try:
+                orbit.setOrbKepl(*classical[0:6], MA=ma)
+            except ValueError as ve:
+                self.cError['text'] = ve.args[0]
+                return
         self.cError['text'] = ' '
         pos, vel = orbit.posvelatt(classical[0])  # pos, vel at epoch
         self.CE_SV[0].set('{: .6f}'.format(classical[0] / secofday))
@@ -226,13 +258,31 @@ class TestConvert(tkinter.Frame):
         kepl = orbit.elmKepl()      # pos, vel at epoch
         self.KE_SV[0].set('{: .6f}'.format(kepl['epoch'] / secofday))
         self.KE_SV[1].set('{: .11e}'.format(kepl['a']))
-        self.KE_SV[2].set('{: .11f}'.format(kepl['e']))
+        self.KE_SV[2].set('{: .10f}'.format(kepl['e']))
         self.KE_SV[3].set('{: 12.9f}'.format(kepl['i']))
         self.KE_SV[4].set('{: 12.9f}'.format(kepl['LoAN']))
         self.KE_SV[5].set('{: 12.9f}'.format(kepl['AoP']))
         self.KE_SV[6].set('{: 12.9f}'.format(kepl['TA']))
+        if kepl['T'] is not None:
+            self.KE_SV[7].set('{: .6f}'.format(kepl['T'] / secofday))
+        else:
+            self.KE_SV[7].set('None')
+        if kepl['MA'] is not None:
+            self.KE_SV[8].set('{: .6f}'.format(kepl['MA']))
+        else:
+            self.KE_SV[8].set('None')
         
     def drawCartesian(self):
+        # Erase mark and line
+        if self.arsc is not None:
+            self.arsc.remove()
+            for j in range(3):
+                self.arname[j].remove()
+            self.arsc = None
+        if self.arline is not None:
+            self.arline[0].remove()
+            self.arline = None
+
         cartesian = []
         for j in range(7):
             cartesian.append(float(self.CE_SV[j].get()))
@@ -248,21 +298,6 @@ class TestConvert(tkinter.Frame):
         self.draw(cartesian[0], t)
     
     def drawClassical(self):
-        classical = []
-        for j in range(7):
-            classical.append(float(self.KE_SV[j].get()))
-        classical[0] *= secofday    # convert to seconds
-        try:
-            orbit.setOrbKepl(*classical)
-        except ValueError as ve:
-            self.dError['text'] = ve.args[0]
-            return
-        self.dError['text'] = ' '
-        
-        t = float(self.Kt_SV.get()) * secofday
-        self.draw(classical[0], t)
-
-    def draw(self, epoch, t):
         # Erase mark and line
         if self.arsc is not None:
             self.arsc.remove()
@@ -272,7 +307,39 @@ class TestConvert(tkinter.Frame):
         if self.arline is not None:
             self.arline[0].remove()
             self.arline = None
-            
+
+        classical = []
+        for j in range(6):
+            classical.append(float(self.KE_SV[j].get()))
+        classical[0] *= secofday    # convert to seconds
+        
+        if self.radio.get() == 6:
+            ta = float(self.KE_SV[6].get())
+            try:
+                orbit.setOrbKepl(*classical[0:6], TA=ta)
+            except ValueError as ve:
+                self.dError['text'] = ve.args[0]
+                return
+        elif self.radio.get() ==7:
+            t = float(self.KE_SV[7].get()) * secofday
+            try:
+                orbit.setOrbKepl(*classical[0:6], T=t)
+            except ValueError as ve:
+                self.dError['text'] = ve.args[0]
+                return
+        else:
+            ma = float(self.KE_SV[8].get())
+            try:
+                orbit.setOrbKepl(*classical[0:6], MA=ma)
+            except ValueError as ve:
+                self.dError['text'] = ve.args[0]
+                return
+        self.dError['text'] = ' '
+        
+        t = float(self.Kt_SV.get()) * secofday
+        self.draw(classical[0], t)
+
+    def draw(self, epoch, t):
         try:
             # Position at Epoch
             pos1, vel1 = orbit.posvelatt(epoch)
@@ -301,6 +368,6 @@ class TestConvert(tkinter.Frame):
 if __name__ == '__main__':
     mw =tkinter.Tk()
     mw.title("Demonstrate pytwobodyorbit")
-    mw.geometry('600x710+10+10')
+    mw.geometry('630x780+10+10')
     app = TestConvert(master=mw)
     app.mainloop()

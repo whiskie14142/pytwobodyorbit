@@ -67,7 +67,10 @@ class TwoBodyOrbit:
         if not self._setOrb:
             raise(RuntimeError('Orbit has not been defined: TwoBodyOrbit'))
 
-        PV = self.ev / np.sqrt(np.dot(self.ev, self.ev))
+        if self.e == 0.0:
+            PV = self.evd
+        else:
+            PV = self.ev / np.sqrt(np.dot(self.ev, self.ev))
         QV = np.cross(self.hv, PV) / np.sqrt(np.dot(self.hv, self.hv))
         r = self.p / (1.0 + self.e * np.cos(ta))
         rv = r * np.cos(ta) * PV + r * np.sin(ta) * QV
@@ -182,23 +185,23 @@ class TwoBodyOrbit:
         Args:
             epoch: Epoch
             a:       semi-major axis
-                     For parabolic trajectory, periapsis distance
-            e:       eccentricity
+            e:       eccentricity (should not be 1.0)
             i:       inclination (degrees)
             LoAN:    longitudeof ascending node (degrees)
-                     If inclination is zero, this value is reset to zero
+                     If inclination is zero, this value defines reference
+                     longitude of AoP
             AoP:     argument of periapsis (degrees)
-                     For a circular orbit, this value is reset to zero
-                     If inclination is zero, this value should be longitule
-                     of periapsis
+                     For a circular orbit, this value indicates a imaginary
+                     periapsis.
             
             TA:      true anomaly on epoch (degrees)
                      For a circular orbit, you should define this value; the
-                     value defines angle from ascending node
+                     value defines angle from imaginary periapsis defined by
+                     AoP
             T:       periapsis passage time
             MA:      mean anomaly on epoch (degrees)
-                     For a parabolic or hyperbolic trajectory, you cannot
-                     specify this argument
+                     For a hyperbolic trajectory, you cannot specify this 
+                     argument
                  TA, T, and MA are mutually execlusive arguments. You 
                  should specify one of them.  If TA is specified, other 
                  arguments will be ignored. If T is specified, MA will be 
@@ -215,25 +218,21 @@ class TwoBodyOrbit:
         
         self._setOrb = False
         
-        if e > 1.0 and a > 0.0:
-            raise ValueError('Invalid Orbital Element(s) in setOrbKepl')
-        if e <= 1.0 and a <= 0.0:
-            raise ValueError('Invalid Orbital Element(s) in setOrbKepl')
-        if e >= 1.0 and TAoE is None and T is None:
-            raise ValueError('Missing Orbital Element: TA or T in setOrbKepl')
+        if e == 1.0:
+            raise ValueError('Invalid orbital element (e=1.0) in setOrbKepl of TwoBodyOrbit')
+        if e > 1.0 and a >= 0.0:
+            raise ValueError('Invalid Orbital Element(s) (inconsistent e and a) in setOrbKepl of TwoBodyOrbit')
+        if e < 1.0 and a <= 0.0:
+            raise ValueError('Invalid Orbital Element(s) (inconsistent e and a) in setOrbKepl of TwoBodyOrbit')
+        if e > 1.0 and TAoE is None and T is None:
+            raise ValueError('Missing Orbital Element (TA or T) in setOrbKepl of TwoBodyOrbit')
         if e != 0.0 and Somega is None:
-            raise ValueError('Missing Orbital Element: AoP in setOrbKepl')
+            raise ValueError('Missing Orbital Element (AoP) in setOrbKepl of TwoBodyOrbit')
         if e == 0.0 and TAoE is None:
-            raise ValueError('Missing Orbital Element: TA in setOrbKepl')
+            raise ValueError('Missing Orbital Element (TA) in setOrbKepl')
         if TAoE is None and T is None and ma is None:
-            raise ValueError('Missing Orbital Element: setOrbKepl requires one of the TA, T, or MA')
+            raise ValueError('Missing Orbital Elements (TA, T, or MA) in setOrbKepl of TwoBodyOrbit')
             
-        # set fixed value
-        if i == 0.0:
-            Lomega = 0.0
-        if e == 0.0:
-            Somega = 0.0
-        
         self.t0 = epoch
         self.a = a
         self.e = e
@@ -248,10 +247,7 @@ class TwoBodyOrbit:
         self._setOrb = True
 
         # semi-latus rectum        
-        if e != 1.0:
-            self.p = a * (1.0 - e * e)
-        else:
-            self.p = a * 2.0
+        self.p = a * (1.0 - e * e)
             
         # orbital period and mean motion
         if e < 1.0:
@@ -275,7 +271,8 @@ class TwoBodyOrbit:
         R = np.array([R1n, R2n, R3n])
 
         # eccentricity vector
-        self.ev = (np.dot(R, np.array([[1.0], [0.0], [0.0]]))).T[0] * self.e
+        self.evd = (np.dot(R, np.array([[1.0], [0.0], [0.0]]))).T[0]
+        self.ev = self.evd * self.e
         # angular momentum vector
         h = math.sqrt(self.p * self.mu)
         self.hv = (np.dot(R, np.array([[0.0], [0.0], [1.0]]))).T[0] * h
@@ -318,9 +315,9 @@ class TwoBodyOrbit:
                 self.ma = None
         else:
             # mean anomaly at epoch
-            self.ma = ma
+            self.ma = math.radians(ma)
             # periapsis passage time
-            self.T = epoch - self.pr * ma / (math.pi * 2.0)
+            self.T = epoch - self.pr * self.ma / (math.pi * 2.0)
             # position and velocity on periapsis
             self.pos, self.vel = self.posvel(0.0)
             # position and velocity at epoch
@@ -358,7 +355,7 @@ class TwoBodyOrbit:
             Origin of coordinates are position of the central body
         """
         if not self._setOrb:
-            raise(RuntimeError('Orbit has not been defined: TwoBodyOrbit'))
+            raise(RuntimeError('Orbit has not been defined: TwoBodyOrbit.points'))
 
         times = np.zeros(ndata)
         xs = np.zeros(ndata)
@@ -369,12 +366,8 @@ class TwoBodyOrbit:
         if self.e < 1.0:
             tas =np.linspace(0.0, math.pi * 2.0, ndata)
         else:
-            if self.e == 1.0:
-                stop = math.pi
-                start = (-1.) * stop
-            else:
-                stop = math.pi - np.arccos(1.0 / self.e)
-                start = (-1.) * stop
+            stop = math.pi - np.arccos(1.0 / self.e)
+            start = (-1.) * stop
             delta = (stop - start) / (ndata + 1)
             tas = np.linspace(start + delta, stop - delta, ndata)
         for j in range(ndata):
@@ -431,7 +424,7 @@ class TwoBodyOrbit:
             return dtdx
 
         if not self._setOrb:
-            raise(RuntimeError('Orbit has not been defined: TwoBodyOrbit'))
+            raise(RuntimeError('Orbit has not been defined: TwoBodyOrbit.posvelatt'))
 
         delta_t = (t - self.t0)
         if delta_t == 0.0:
