@@ -268,7 +268,7 @@ class TestConvert(tkinter.Frame):
         else:
             self.KE_SV[7].set('None')
         if kepl['MA'] is not None:
-            self.KE_SV[8].set('{: .6f}'.format(kepl['MA']))
+            self.KE_SV[8].set('{: 12.9f}'.format(kepl['MA']))
         else:
             self.KE_SV[8].set('None')
         
