@@ -2,11 +2,12 @@
 """Comutations about two-body Orbits (v1.0.0)
 
 This module provide computations about two-body orbits, including:
-  Compute Classical orbital elements from position and velocity
+  Define the orbit by position and velocity of an object
+  Define the orbit by classical orbital elements of an object
+  Compute position and velocity of an object at given time
   Provide seriese of points on orbital trajectory for visualization
-  Predict position and velocity of the object for given time
   Solve Lambert's problem  (From given two positions and flight time 
-  between them, solveGauss() computes initial and terminal velocity of 
+  between them, lambert() computes initial and terminal velocity of 
   the object)
 
 @author: Shushi Uetsuki/whiskie14142
@@ -19,7 +20,7 @@ from scipy.optimize import bisect
 
   
 class TwoBodyOrbit:
-    """Class for a two-body orbit of a celestial object
+    """A class of a two-body orbit of a celestial object
     
     """
     def timeFperi(self, ta):
@@ -32,7 +33,7 @@ class TwoBodyOrbit:
                            depends on gravitational parameter (mu)
         """
         if not self._setOrb:
-            raise(RuntimeError('Orbit has not been defined: TwoBodyOrbit'))
+            raise(RuntimeError('Orbit has not been defined: in TwoBodyOrbit.timeFperi'))
             
         r = self.a * (1.0 - self.e ** 2) / (1.0 + self.e * np.cos(ta))
         if self.e < 1.0:
@@ -65,7 +66,7 @@ class TwoBodyOrbit:
                 Units are depend on gravitational parameter (mu)
         """
         if not self._setOrb:
-            raise(RuntimeError('Orbit has not been defined: TwoBodyOrbit'))
+            raise(RuntimeError('Orbit has not been defined: in TwoBodyOrbit.posvel'))
 
         PV = self.evd
         QV = np.cross(self.hv, PV) / np.sqrt(np.dot(self.hv, self.hv))
@@ -79,9 +80,9 @@ class TwoBodyOrbit:
         """
         Args:
             bname: Name of the object which orbit around the central body
-            mname: Name of the body
+            mname: Name of the central body
             mmu : Gravitational parameter (mu) of the central body
-                Default value is mu of the Sun.
+                Default value is mu of the Sun.  
                 
                 mu should be:
                 if Mc >> Mo
@@ -100,18 +101,19 @@ class TwoBodyOrbit:
         self.mu = mmu
     
     def setOrbCart(self, t, pos, vel):
-        """Define the orbit by epoch, position, and velocity
+        """Define the orbit by epoch, position, and velocity of the object
         
         Args:
             t: Epoch
-            pos: Position (x,y,z), array like object
-            vel: Velocity (xd,yd,zd), array like object
+            pos: Position (x,y,z), array-like object
+            vel: Velocity (xd,yd,zd), array-like object
                 Units are depend on gravitational parameter (mu)
-                Origin of coordinates is central body
+                Origin of coordinates are the central body
         
         Exceptions:
             ValueError: when angular momentum is zero, the method raises
                 ValueError
+                        when e becomes 1.0, the method raises ValueError
         """
         self.t0 = t
         self.pos = np.array(pos)
@@ -130,7 +132,7 @@ class TwoBodyOrbit:
         hlen = np.sqrt(hlen2)
         if hlen == 0.0:
             self._setOrb = False
-            raise(ValueError('Inappropriate pos and vel in setOrbCart of TwoBodyOrbit'))
+            raise(ValueError('Inappropriate pos and vel in TwoBodyOrbit.setOrbCart'))
 
         # eccentricity vector; it can be zero
         ev = ((rd0len2 - self.mu/r0len) * r0 - np.dot(r0, rd0) * rd0) / self.mu
@@ -172,6 +174,9 @@ class TwoBodyOrbit:
         self.ev = ev                            # eccentricity vector
         self.evd = ev_norm                      # normalized eccentricity vector
         self.e = np.sqrt(np.dot(ev, ev))        # eccentricity
+        if self.e == 1.0:
+            self._setOrb = False
+            raise(ValueError('Inappropriate pos and vel in TwoBodyOrbit.setOrbCart'))
         self.a = self.p / (1.0 - self.e ** 2)   # semi-major axis
         self.i = np.arccos(h[2] / hlen)         # inclination (radians)
         self.ta0 = np.arctan2(np.dot(he_norm, r0), np.dot(ev_norm, r0))     # true anomaly at epoch
@@ -197,7 +202,7 @@ class TwoBodyOrbit:
             a:       semi-major axis
             e:       eccentricity (should not be 1.0)
             i:       inclination (degrees)
-            LoAN:    longitudeof ascending node (degrees)
+            LoAN:    longitude of ascending node (degrees)
                      If inclination is zero, this value defines reference
                      longitude of AoP
             AoP:     argument of periapsis (degrees)
@@ -213,7 +218,7 @@ class TwoBodyOrbit:
             MA:      mean anomaly on epoch (degrees)
                      For a hyperbolic trajectory, you cannot specify this 
                      argument
-                     For a circular orbit, the value defines passage time for
+                     For a circular orbit, the value defines anomaly from
                      the imaginary periapsis defined by AoP
                  TA, T, and MA are mutually execlusive arguments. You 
                  should specify one of them.  If TA is specified, other 
@@ -221,7 +226,8 @@ class TwoBodyOrbit:
                  ignored.
         
         Exceptions:
-            ValueError:
+            ValueError: If classical orbital element(s) are inconsistent, the
+                raises ValueError
         """
         # changed keys
         Lomega = LoAN
@@ -232,17 +238,15 @@ class TwoBodyOrbit:
         self._setOrb = False
         
         if e < 0.0:
-            raise ValueError('Invalid orbital element (e<0.0) in setOrbKepl of TwoBodyOrbit')
+            raise ValueError('Invalid orbital element (e<0.0) in TwoBodyOrbit.setOrbKepl')
         if e == 1.0:
-            raise ValueError('Invalid orbital element (e=1.0) in setOrbKepl of TwoBodyOrbit')
-        if e > 1.0 and a >= 0.0:
-            raise ValueError('Invalid Orbital Element(s) (inconsistent e and a) in setOrbKepl of TwoBodyOrbit')
-        if e < 1.0 and a <= 0.0:
-            raise ValueError('Invalid Orbital Element(s) (inconsistent e and a) in setOrbKepl of TwoBodyOrbit')
+            raise ValueError('Invalid orbital element (e=1.0) in TwoBodyOrbit.setOrbKepl')
+        if (e > 1.0 and a >= 0.0) or (e < 1.0 and a <= 0.0):
+            raise ValueError('Invalid Orbital Element(s) (inconsistent e and a) in TwoBodyOrbit.setOrbKepl')
         if e > 1.0 and TAoE is None and T is None:
-            raise ValueError('Missing Orbital Element (TA or T) in setOrbKepl of TwoBodyOrbit')
+            raise ValueError('Missing Orbital Element (TA or T) in TwoBodyOrbit.setOrbKepl')
         if TAoE is None and T is None and ma is None:
-            raise ValueError('Missing Orbital Elements (TA, T, or MA) in setOrbKepl of TwoBodyOrbit')
+            raise ValueError('Missing Orbital Elements (TA, T, or MA) in TwoBodyOrbit.setOrbKepl')
         taError = False
         if TAoE is not None and e > 1.0:
             mta = math.degrees(math.acos((-1.0) / e))
@@ -253,7 +257,7 @@ class TwoBodyOrbit:
             elif TAoE <= (-1.0) * mta:
                 taError = True
             if taError:
-                raise ValueError('Invalid Orbital Element (TA) in setOrbKepl of TwoBodyOrbit')
+                raise ValueError('Invalid Orbital Element (TA) in TwoBodyOrbit.setOrbKepl')
             
         self.t0 = epoch
         self.a = a
@@ -305,10 +309,7 @@ class TwoBodyOrbit:
             # true anomaly at epoch
             self.ta0 = math.radians(TAoE)
             # periapsis passage time
-            if self.e != 0.0:
-                self.T = self.t0 - self.timeFperi(self.ta0)
-            else:
-                self.T = (math.pi * 2.0 - self.ta0) / self.mm + self.t0
+            self.T = self.t0 - self.timeFperi(self.ta0)
             # mean anomaly at epoch
             if self.e < 1.0:
                 self.ma = (self.t0 - self.T) / self.pr * math.pi * 2.0
@@ -411,7 +412,7 @@ class TwoBodyOrbit:
             newpos: Position of the object at t (x,y,z) (Numpy array)
             newvel: Velocity of the object at t (xd,yd,zd) (Numpy array)
         Exception:
-            RuntimeError: 
+            RuntimeError: If it failed to the computation, raises RuntimeError
             
             Origin of coordinates are position of the central body
         """
@@ -513,14 +514,18 @@ class TwoBodyOrbit:
                 'e': Eccentricity
                 'i': Inclination in degrees
                 'LoAN': Longitude of ascending node in degrees
-                    If inclination is zero, Lomega yields zero
+                    If inclination is zero, LoAN yields reference longitude
+                    for AoP
                 'AoP': Argument of periapsis in degrees
-                    If inclination is zero, Somega yields longitude of periapsis
-                    For circular orbit, Lomega yields zero
+                    If inclination is zero, AoP yields angle from reference
+                    longitude (LoAN)
+                    For circular orbit, AoP yields imaginary periapsis
                 'TA': True anomaly at epoch in degrees
-                    For circular orbit, TAoE yields angle from ascending node
+                    For circular orbit, TAoE yields angle from imaginary 
+                    periapsis (AoP)
                 'T': Periapsis passage time
-                    For circular orbit, T yields ascending node passage time
+                    For circular orbit, T yields passage time of imaginary
+                    periapsis (AoP)
                 'MA': Mean anomaly at epoch in degrees (elliptic orbit only)
                     For circular orbit, ma is the same to TAoE
                 'n': Mean motion in degrees (elliptic orbit only)
@@ -549,13 +554,13 @@ class TwoBodyOrbit:
         return kepl
 
 def lambert(ipos, tpos, targett, mu, ccw=True):
-    """Solve Lambert's Problem
+    """A function to solve 'Lambert's Problem'
     
     From given initial position, terminal position, and flight time, 
     compute initial velocity and terminal velocity.
     Args: ipos, tpos, targett, mu, ccw
-        ipos: Initial position of the object (x,y,z) as Numpy array
-        tpos: Terminal position of the object (x,y,z) as Numpy array
+        ipos: Initial position of the object (x,y,z) (array-like object)
+        tpos: Terminal position of the object (x,y,z) (array-like object)
         targett: Flight time
         mu: Gravitational parameter of the central body
         ccw: Flag for orbital direction. If True, counter clockwise

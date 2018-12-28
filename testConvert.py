@@ -90,15 +90,15 @@ class TestConvert(tkinter.Frame):
                 'Periapsis passage (T)  ',
                 'Mean anomaly (MA)  ']
         self.KE_v = [
-                ' 0.000000',
+                ' 0.00000000000',
                 ' 1.49597870700e+11',
-                ' 0.5000000000',
-                ' 15.000000000',
-                ' 60.000000000',
-                ' 135.000000000',
-                ' 0.000000000',
-                ' 0.000000',
-                ' 0.000000000']
+                ' 0.50000000000',
+                ' 15.00000000000',
+                ' 60.00000000000',
+                ' 135.00000000000',
+                ' 0.00000000000',
+                ' 0.00000000000',
+                ' 0.00000000000']
         self.KE_L = []
         self.KE_SV = []
         self.KE_E = []
@@ -129,7 +129,7 @@ class TestConvert(tkinter.Frame):
                 '  Velocity YD',
                 '  Velocity ZD']
         self.CE_v = [
-                ' 0.000000',
+                ' 0.00000000000',
                 ' 1.00000000000e+11',
                 ' 1.20000000000e+11',
                 ' 0.20000000000e+11',
@@ -238,7 +238,7 @@ class TestConvert(tkinter.Frame):
                 return
         self.cError['text'] = ' '
         pos, vel = orbit.posvelatt(classical[0])  # pos, vel at epoch
-        self.CE_SV[0].set('{: .6f}'.format(classical[0] / secofday))
+        self.CE_SV[0].set('{: .11f}'.format(classical[0] / secofday))
         for j in range(3):
             self.CE_SV[j+1].set('{: .11e}'.format(pos[j]))
             self.CE_SV[j+4].set('{: .11e}'.format(vel[j]))
@@ -256,19 +256,19 @@ class TestConvert(tkinter.Frame):
         
         self.cError['text'] = ' '
         kepl = orbit.elmKepl()      # pos, vel at epoch
-        self.KE_SV[0].set('{: .6f}'.format(kepl['epoch'] / secofday))
+        self.KE_SV[0].set('{: .11f}'.format(kepl['epoch'] / secofday))
         self.KE_SV[1].set('{: .11e}'.format(kepl['a']))
-        self.KE_SV[2].set('{: .10f}'.format(kepl['e']))
-        self.KE_SV[3].set('{: 12.9f}'.format(kepl['i']))
-        self.KE_SV[4].set('{: 12.9f}'.format(kepl['LoAN']))
-        self.KE_SV[5].set('{: 12.9f}'.format(kepl['AoP']))
-        self.KE_SV[6].set('{: 12.9f}'.format(kepl['TA']))
+        self.KE_SV[2].set('{: .11f}'.format(kepl['e']))
+        self.KE_SV[3].set('{: 12.11f}'.format(kepl['i']))
+        self.KE_SV[4].set('{: 12.11f}'.format(kepl['LoAN']))
+        self.KE_SV[5].set('{: 12.11f}'.format(kepl['AoP']))
+        self.KE_SV[6].set('{: 12.11f}'.format(kepl['TA']))
         if kepl['T'] is not None:
-            self.KE_SV[7].set('{: .6f}'.format(kepl['T'] / secofday))
+            self.KE_SV[7].set('{: .11f}'.format(kepl['T'] / secofday))
         else:
             self.KE_SV[7].set('None')
         if kepl['MA'] is not None:
-            self.KE_SV[8].set('{: 12.9f}'.format(kepl['MA']))
+            self.KE_SV[8].set('{: 12.11f}'.format(kepl['MA']))
         else:
             self.KE_SV[8].set('None')
         

@@ -43,7 +43,7 @@ ax.text2D(0.02, 1.00, 'Rotate: move mouse with L button held down', transform=ax
 ax.text2D(0.02, 0.97, 'Zoom: move mouse up/down with R button held down', transform=ax.transAxes)
 
 mngr = plt.get_current_fig_manager()
-mngr.window.setGeometry(640, 50, 600, 600)
+mngr.window.setGeometry(660, 40, 600, 600)
 
 
 class TestLambert(tkinter.Frame):
@@ -251,6 +251,6 @@ class TestLambert(tkinter.Frame):
 if __name__ == '__main__':
     mw =tkinter.Tk()
     mw.title("Demonstrate 'lambert' function of pytwobodyorbit")
-    mw.geometry('600x880+10+10')
+    mw.geometry('620x880+10+10')
     app = TestLambert(master=mw)
     app.mainloop()
