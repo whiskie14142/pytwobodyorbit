@@ -620,13 +620,13 @@ def lambert(ipos, tpos, targett, mu, ccw=True):
     # The threshold 0.001 is an empirical value
     if dnu < 0.001 or dnu > (math.pi * 2.0 - 0.001):
         raise(ValueError('Difference in true anomaly is too small:' +
-                            ' solveGauss'))
+                            ' pytwobodyorbit.lambert'))
     
     # Check difference of true anomaly of two points
     # The threshold 0.00001 is an empirical value
     if (dnu - math.pi) ** 2 < 0.00001 ** 2:
         raise(ValueError('Two points are placed opposite each' +
-                            ' other: solveGauss'))
+                            ' other: pytwobodyorbit.lambert'))
     
     # Configure boundaries for scipy.optimize.bisect
     # b1: Lower boundary
@@ -644,7 +644,7 @@ def lambert(ipos, tpos, targett, mu, ccw=True):
                 found = True
                 break
     if not found:
-        raise(ValueError("Could not solve Lambert's Plobrem: solveGauss"))        
+        raise(ValueError("Could not solve Lambert's Plobrem: pytwobodyorbit.lambert"))        
     
     # configure b1, and b2
     b1 = (-1.0) * dnu ** 2
@@ -663,7 +663,7 @@ def lambert(ipos, tpos, targett, mu, ccw=True):
         else:
             b1 = (b1 + lastb1) /2.0
     if not found:
-        raise(ValueError("Could not solve Lambert's Plobrem: solveGauss"))        
+        raise(ValueError("Could not solve Lambert's Plobrem: pytwobodyorbit.lambert"))        
     
     zn = bisect(_func, b1, b2, args=(tsec, r1pr2, A, mu), maxiter=100)
 

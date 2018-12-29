@@ -64,7 +64,7 @@ class TestConvert(tkinter.Frame):
         self.comment = tkinter.Text(self, width=80, height=22, 
                         font=('Helvetica', 10), wrap=tkinter.WORD)
         scom = "This program demonstrates the 'TwoBodyOrbit' class of 'pytwobodyorbit'.\n\n" + \
-            "An instance of the 'TwoBodyOrbit' can be set the orbital parameters of an object by classical orbital elements (a, e, i, etc.) or by Cartesian orbital elements (position and velocity), and it can outputs Cartesian orbital elements and classical orbital elements of the orbit.\n\n" + \
+            "An instance of the 'TwoBodyOrbit' can be set the orbital parameters by classical orbital elements (a, e, i, etc.) or by Cartesian orbital elements (position and velocity), and it can outputs Cartesian orbital elements and classical orbital elements.\n\n" + \
             "In this program, we can convert a set of classical orbital elements of an object, which is orbiting around the Sun, into a set of Cartesian orbital elements, and vice versa.  In addition, we can see the orbit as a drawing on the 3D chart.\n\n" + \
             "USAGE:\nEdit one set of the orbital elements and click one of the buttons to convert, [To Cartesian ⇒] or [⇐ To Classical].\nEdit one of the 'Time (t)' input field, and click one of the buttons to draw, [Draw from Classical Elements] or [Draw from Cartesian Elements].\n\n" + \
             "UNITS:\nLength - meters\nVelocity - meters per second\nTime - days\nAngle - degrees"
@@ -92,7 +92,7 @@ class TestConvert(tkinter.Frame):
         self.KE_v = [
                 ' 0.00000000000',
                 ' 1.49597870700e+11',
-                ' 0.50000000000',
+                ' 0.5000000000',
                 ' 15.00000000000',
                 ' 60.00000000000',
                 ' 135.00000000000',
@@ -258,7 +258,7 @@ class TestConvert(tkinter.Frame):
         kepl = orbit.elmKepl()      # pos, vel at epoch
         self.KE_SV[0].set('{: .11f}'.format(kepl['epoch'] / secofday))
         self.KE_SV[1].set('{: .11e}'.format(kepl['a']))
-        self.KE_SV[2].set('{: .11f}'.format(kepl['e']))
+        self.KE_SV[2].set('{: .10f}'.format(kepl['e']))
         self.KE_SV[3].set('{: 12.11f}'.format(kepl['i']))
         self.KE_SV[4].set('{: 12.11f}'.format(kepl['LoAN']))
         self.KE_SV[5].set('{: 12.11f}'.format(kepl['AoP']))

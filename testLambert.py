@@ -169,6 +169,7 @@ class TestLambert(tkinter.Frame):
         
         if self.arsc is not None:
             self.arsc.remove()
+            self.arsc = None
             for j in range(3):
                 self.arname[j].remove()
                 
@@ -176,6 +177,10 @@ class TestLambert(tkinter.Frame):
         for j in range(3):
             self.arname[j] = ax.text(ps[0, j], ps[1, j], ps[2, j], 
                              self.object[j], color='b', fontsize=9)
+
+        if self.arline is not None:
+            self.arline[0].remove()
+            self.arline = None
         
         # Get flight time (days) and convert into seconds
         duration = float(self.ftime.get()) * secofday
@@ -184,8 +189,8 @@ class TestLambert(tkinter.Frame):
             # Compute initial and terminal velocity with solveGauss.
             # You may try ccw=False.
             ivel, tvel = lambert(pos1, pos2, duration, mu, ccw=prog)
-        except ValueError:
-            self.Lspace5['text'] = "'lambert' function could not compute initial/terminal velocity.  Try different parameters."
+        except ValueError as ve:
+            self.Lspace5['text'] = ve.args[0]
             return
 
         
@@ -231,8 +236,6 @@ class TestLambert(tkinter.Frame):
         x, y, z, t = orbit.points(1001)
         
         # Plot an orbital line
-        if self.arline is not None:
-            self.arline[0].remove()
         self.arline = ax.plot(x, y, z, color='r', lw=0.75)
         plt.draw()
         
