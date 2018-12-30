@@ -38,15 +38,16 @@ A class that provides a two-body orbit of a celestial body, which orbits around 
 #### Usage
 
     from pytwobodyorbit import TwoBodyOrbit
-    orbit = TwoBodyOrbit("Space Probe")     # create an instance
-    t0 = 0.0                                # epoch
-    pos0 = [1e11, 1.2e11, 0.2e11]           # position
-    vel0 = [-2e4, 1.8e4, 0.0]               # velocity
-    orbit.setOrbCart(t0, pos0, vel0)        # define the orbit
-    t1 = 100.0 * 86400                      # time after 100 days
-    pos, vel = orbit.posvelatt(t1)          # get position and velocity at t1
-    xs, ys, zs, times = orbit.points(100)   # get points (series of 100 points)
-    kepl = orbit.elmKepl()                  # get classical orbital elements
+    sunmu = 1.32712440041e20
+    orbit = TwoBodyOrbit("Space Probe", mu=sunmu)   # create an instance
+    t0 = 0.0                                        # epoch
+    pos0 = [1e11, 1.2e11, 0.2e11]                   # position
+    vel0 = [-2e4, 1.8e4, 0.0]                       # velocity
+    orbit.setOrbCart(t0, pos0, vel0)                # define the orbit
+    t1 = 100.0 * 86400                              # time after 100 days
+    pos, vel = orbit.posvelatt(t1)                  # get position and velocity at t1
+    xs, ys, zs, times = orbit.points(100)           # get points (series of 100 points)
+    kepl = orbit.elmKepl()                          # get classical orbital elements
 
 In this sampe code we used the default value for mu. The value is gravitational palameter of the Sun.  The value requires length in meters, time in seconds.
 
@@ -56,12 +57,12 @@ A function to solve "Lambert's Problem". From given initial position, terminal p
 #### Usage
 
     from pytwobodyorbit import lambert
-    P1 = [1.5e11, 0.0, 0.0]
-    P1 = [-0.5e11, 1.3e11, 0.4e11]
-    Ft = 100.0 * 86400
-    mu = 1.32712440041e20
-    prog = True
-    ivel, tvel = lambert(P1, P2, Ft, mu, ccw=prog)
+    P1 = [1.5e11, 0.0, 0.0]                                 # initial position
+    P2 = [-0.5e11, 1.3e11, 0.4e11]                          # terminal position
+    Ft = 100.0 * 86400                                      # flight time in seconds
+    sunmu = 1.32712440041e20                                # mu of the Sun
+    prog = True                                             # Prograde orbit
+    ivel, tvel = lambert(P1, P2, Ft, mu=sunmu, ccw=prog)    # get initial velocity and terminal velocity
     
 ## Required environment
 * Python 3
@@ -74,8 +75,11 @@ A function to solve "Lambert's Problem". From given initial position, terminal p
 
 ## Modification Log
 #### 1.0.0 January 4, 2019
+##### TwoBodyOrbit class
+* Constructor method was changed its argument name (mmu to mu)
 * Method "setOrbKepl" was added to "TwoBodyOrbit" class
-* Method "elmKepl" changed its returning data; keys of dictionary were changed
+* Method "elmKepl" was changed its returning data; keys of dictionary were modified
+##### lambert function
 * Function name was changed; from "solveGauss" to "lambert"
 
 #### 0.1.0 November 7, 2016
