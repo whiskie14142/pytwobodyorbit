@@ -1,54 +1,41 @@
-# pytwobodyorbit.py
-A two-body orbit computation module
+# pytwobodyorbit
+"pytwobodyorbit" is a module that provides various computations about two-body orbits, including:
+* Defines the orbit by position and velocity of an object
+* Defines the orbit by classical orbital elements
+* Computes position and velocity of an object at a given time
+* Provides seriese of points on orbital trajectory of an object for visualization
+* Solves so-called "Lambert's problem" (When two positions and flight time between them are given, the module computes initial and terminal velocity of the object).
 
 The module contains "TwoBodyOrbit" class and "lambert" function.
 
 ## TwoBodyOrbit (Class)
 A class that provides a two-body orbit of a celestial body, which orbits around or flys by a central body. 
 
-### Attributes
-#### bodyname
-The name of the celestial body
+#### Attributes
+* bodyname: The name of the celestial body
+* mothername: The name of the central body
+* mu: Gravitational parameter (mu) of the central body
 
-#### mothername
-The name of the central body
+#### Methods
+* setOrbCart: Define the orbit by Cartesian orbital elements (the position and velocity of the body)
+* setOrbKepl: Define the orbit by classical orbital elements (Keplerian orbital elements). Arguments are as follows:
+  * epoch: Epoch
+  * a: Semi-major axis
+  * e: Eccentricity; 1.0 is not allowed
+  * i: Orbital inclination in degrees
+  * LoAN: Longitude of ascending node in degrees; if inclination is zero, this value defines a reference longitude of AoP
+  * AoP: Argument of periapsis in degrees; if inclination is zero, this value indicates an angle from the reference longitude; for a circular orbit, this value defines a imaginary periapsis
+  * Following three keyword parameters (TA, T, MA) are mutually execlusive.  You should specify one of them.
+    * TA: True anomaly at epoch in degrees; for a circular orbit, this value indicates an angle from the imaginary periapsis
+    * T: Periapsis passage time; for a circular orbit, this value indicates passage time for the imaginary periapsis
+    * MA: Mean anomaly at epoch in degrees; for a hyperbolic trajectory, you cannot specify this argument; for a circular orbit, this value indicates anomaly form the imaginary periapsis
 
-#### mu
-Gravitational parameter (mu) of the central body
+* posvel: Returns position and velocity of the body for given true anomaly
+* points: Returns points on orbital trajectory for vusualization
+* posvelatt: Returns position and velocity of the body for given time
+* elmKepl: Returns classical orbital elements (Keplerian orbital elements) of the orbit
 
-### Methods
-#### "__init__": Initialize attributes of an instance
-
-#### setOrbCart: Define the orbit by Cartesian orbital elements (the position and velocity of the body)
-
-#### setOrbKepl
-Define the orbit by classical orbital elements (Keplerian orbital elements).
-Arguments are as follows:
-* epoch: Epoch
-* a: Semi-major axis
-* e: Eccentricity; 1.0 is not allowed
-* i: Orbital inclination in degrees
-* LoAN: Longitude of ascending node in degrees; if inclination is zero, this value defines a reference longitude of AoP
-* AoP: Argument of periapsis in degrees; if inclination is zero, this value indicates an angle from the reference longitude; for a circular orbit, this value defines a imaginary periapsis
-* TA: True anomaly at epoch in degrees; for a circular orbit, this value indicates an angle from the imaginary periapsis
-* T: Periapsis passage time; for a circular orbit, this value indicates passage time for the imaginary periapsis
-* MA: Mean anomaly at epoch in degrees; for a hyperbolic trajectory, you cannot specify this argument; for a circular orbit, this value indicates anomaly form the imaginary periapsis
-Three keyword parameters (TA, T, MA) are mutually execlusive.  You should specify one of them.
-
-#### posvel
-Returns position and velocity of the body for given true anomaly
-
-#### points
-Returns points on orbital trajectory for vusualization
-
-#### posvelatt
-Returns position and velocity of the body for given time
-
-#### elmKepl
-Returns classical orbital elements (Keplerian orbital elements) of the orbit
-
-### Usage
-In this sampe code we use the default value for mu. The value is gravitational palameter of the Sun.  The value requires length in meters, time in seconds.
+#### Usage
 
     from pytwobodyorbit import TwoBodyOrbit
     orbit = TwoBodyOrbit("Space Probe")     # create an instance
@@ -57,17 +44,25 @@ In this sampe code we use the default value for mu. The value is gravitational p
     vel0 = [-2e4, 1.8e4, 0.0]               # velocity
     orbit.setOrbCart(t0, pos0, vel0)        # define the orbit
     t1 = 100.0 * 86400                      # time after 100 days
-    pos, vel = orbit.posvelatt(t1)          # get position and velocity
-    xs, ys, zs, times = orbit.points(100)   # get points
+    pos, vel = orbit.posvelatt(t1)          # get position and velocity at t1
+    xs, ys, zs, times = orbit.points(100)   # get points (series of 100 points)
     kepl = orbit.elmKepl()                  # get classical orbital elements
 
+In this sampe code we used the default value for mu. The value is gravitational palameter of the Sun.  The value requires length in meters, time in seconds.
 
 ## lambert (Function)
-A function to solve "Lambert's Problem"
+A function to solve "Lambert's Problem". From given initial position, terminal position, and flight time, the function computes initial velocity and terminal velocity.
 
-From given initial position, terminal position, and flight time, compute initial velocity and terminal velocity.
+#### Usage
 
-### Usage
+    from pytwobodyorbit import lambert
+    P1 = [1.5e11, 0.0, 0.0]
+    P1 = [-0.5e11, 1.3e11, 0.4e11]
+    Ft = 100.0 * 86400
+    mu = 1.32712440041e20
+    prog = True
+    ivel, tvel = lambert(P1, P2, Ft, mu, ccw=prog)
+    
 ## Required environment
 * Python 3
 
