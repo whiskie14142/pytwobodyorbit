@@ -17,11 +17,9 @@ The name of the central body
 Gravitational parameter (mu) of the central body
 
 ### Methods
-#### __init__
-Initialize attributes of a instance
+#### "__init__": Initialize attributes of an instance
 
-#### setOrbCart
-Define the orbit by Cartesian orbital elements (the position and velocity of the body).
+#### setOrbCart: Define the orbit by Cartesian orbital elements (the position and velocity of the body)
 
 #### setOrbKepl
 Define the orbit by classical orbital elements (Keplerian orbital elements).
@@ -31,7 +29,7 @@ Arguments are as follows:
 * e: Eccentricity; 1.0 is not allowed
 * i: Orbital inclination in degrees
 * LoAN: Longitude of ascending node in degrees; if inclination is zero, this value defines a reference longitude of AoP
-* AoP: Argument of periapsis in degrees; if inclination is zero, this value indicates an angle from reference longitude; for a circular orbit, this value defines a imaginary periapsis
+* AoP: Argument of periapsis in degrees; if inclination is zero, this value indicates an angle from the reference longitude; for a circular orbit, this value defines a imaginary periapsis
 * TA: True anomaly at epoch in degrees; for a circular orbit, this value indicates an angle from the imaginary periapsis
 * T: Periapsis passage time; for a circular orbit, this value indicates passage time for the imaginary periapsis
 * MA: Mean anomaly at epoch in degrees; for a hyperbolic trajectory, you cannot specify this argument; for a circular orbit, this value indicates anomaly form the imaginary periapsis
@@ -50,14 +48,8 @@ Returns position and velocity of the body for given time
 Returns classical orbital elements (Keplerian orbital elements) of the orbit
 
 ### Usage
-
-## lambert (Function)
-A function to solve "Lambert's Problem"
-
-From given initial position, terminal position, and flight time, compute initial velocity and terminal velocity.
-
-### Usage
 In this sampe code we use the default value for mu. The value is gravitational palameter of the Sun.  The value requires length in meters, time in seconds.
+
     from pytwobodyorbit import TwoBodyOrbit
     orbit = TwoBodyOrbit("Space Probe")     # create an instance
     t0 = 0.0                                # epoch
@@ -69,6 +61,13 @@ In this sampe code we use the default value for mu. The value is gravitational p
     xs, ys, zs, times = orbit.points(100)   # get points
     kepl = orbit.elmKepl()                  # get classical orbital elements
 
+
+## lambert (Function)
+A function to solve "Lambert's Problem"
+
+From given initial position, terminal position, and flight time, compute initial velocity and terminal velocity.
+
+### Usage
 ## Required environment
 * Python 3
 
