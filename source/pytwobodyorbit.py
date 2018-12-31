@@ -76,7 +76,7 @@ class TwoBodyOrbit:
             + np.cos(ta)) * QV)
         return rv, vv
 
-    def __init__(self, bname, mname='Sol', mmu=1.32712440041e20):
+    def __init__(self, bname, mname='Sol', mu=1.32712440041e20):
         """
         Args:
             bname: Name of the object which orbit around the central body
@@ -98,7 +98,7 @@ class TwoBodyOrbit:
         self._setOrb = False
         self.bodyname = bname
         self.mothername = mname
-        self.mu = mmu
+        self.mu = mu
     
     def setOrbCart(self, t, pos, vel):
         """Define the orbit by epoch, position, and velocity of the object
@@ -220,14 +220,14 @@ class TwoBodyOrbit:
                      argument
                      For a circular orbit, the value defines anomaly from
                      the imaginary periapsis defined by AoP
-                 TA, T, and MA are mutually execlusive arguments. You 
-                 should specify one of them.  If TA is specified, other 
-                 arguments will be ignored. If T is specified, MA will be 
-                 ignored.
+                     
+                 TA, T, and MA are mutually exclusive arguments. You should 
+                 specify one of them.  If TA is specified, other arguments 
+                 will be ignored. If T is specified, MA will be ignored.
         
         Exceptions:
             ValueError: If classical orbital element(s) are inconsistent, the
-                raises ValueError
+                method raises ValueError
         """
         # changed keys
         Lomega = LoAN
@@ -553,7 +553,7 @@ class TwoBodyOrbit:
             
         return kepl
 
-def lambert(ipos, tpos, targett, mu, ccw=True):
+def lambert(ipos, tpos, targett, mu=1.32712440041e20, ccw=True):
     """A function to solve 'Lambert's Problem'
     
     From given initial position, terminal position, and flight time, 
@@ -562,7 +562,7 @@ def lambert(ipos, tpos, targett, mu, ccw=True):
         ipos: Initial position of the object (x,y,z) (array-like object)
         tpos: Terminal position of the object (x,y,z) (array-like object)
         targett: Flight time
-        mu: Gravitational parameter of the central body
+        mu: Gravitational parameter of the central body (default value is for the Sun)
         ccw: Flag for orbital direction. If True, counter clockwise
     Returns: ivel, tvel
         ivel: Initial velocity of the object (xd,yd,zd) as Numpy array

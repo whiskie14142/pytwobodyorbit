@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Testing and demonstrating program for 'solveGauss' of pytwobodyorbit
+"""Testing and demonstrating program for 'lambert' of pytwobodyorbit
 Created on Fri Dec 14 08:44:47 2018
 
 @author: Shushi Uetsuki/whiskie14142
@@ -16,10 +16,10 @@ import matplotlib
 # Standard gravitational parameter for the Sun
 # With this parameter, lenght should be in meters,
 # and time should be in seconds
-mu = 1.32712440041e20
+sunmu = 1.32712440041e20
 
 # Create instance of TwoBodyOrbit
-orbit = TwoBodyOrbit('object', mmu=mu)
+orbit = TwoBodyOrbit('object', mu=sunmu)
 
 # Seconds of a day
 secofday = 86400.0
@@ -157,11 +157,11 @@ class TestLambert(tkinter.Frame):
     def compute(self, prog=True):
         # Clicking of the button [Compute and Draw] runs this method
         
-        # Get initiating position
+        # Get initial position
         pos1 = np.array([float(self.pos1_X.get()), float(self.pos1_Y.get()),
                          float(self.pos1_Z.get())])
                          
-        # Get terminating position
+        # Get terminal position
         pos2 = np.array([float(self.pos2_X.get()), float(self.pos2_Y.get()),
                          float(self.pos2_Z.get())])
                          
@@ -188,7 +188,7 @@ class TestLambert(tkinter.Frame):
         try:
             # Compute initial and terminal velocity with solveGauss.
             # You may try ccw=False.
-            ivel, tvel = lambert(pos1, pos2, duration, mu, ccw=prog)
+            ivel, tvel = lambert(pos1, pos2, duration, sunmu, prog)
         except ValueError as ve:
             self.Lspace5['text'] = ve.args[0]
             return
@@ -201,7 +201,7 @@ class TestLambert(tkinter.Frame):
         self.Ltvel = tkinter.Label(self, text=stvel, width=80, anchor=tkinter.W)
         self.Ltvel.grid(row=16, column=0, columnspan=3, sticky=tkinter.W)
 
-        # Define orbit from epoch, initiating position, and initial velocity
+        # Define orbit from epoch, initial position, and initial velocity
         orbit.setOrbCart(0.0, pos1, ivel)
         
         # Get Classical orbital elements and show them

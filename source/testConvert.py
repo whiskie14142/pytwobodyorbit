@@ -15,10 +15,10 @@ import matplotlib
 # Standard gravitational parameter for the Sun
 # With this parameter, lenght should be in meters,
 # and time should be in seconds
-mu = 1.32712440041e20
+sunmu = 1.32712440041e20
 
 # Create instance of TwoBodyOrbit
-orbit = TwoBodyOrbit('object', mmu=mu)
+orbit = TwoBodyOrbit('object', mu=sunmu)
 
 # Seconds of a day
 secofday = 86400.0
