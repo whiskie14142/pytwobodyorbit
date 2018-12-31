@@ -76,21 +76,21 @@ class TwoBodyOrbit:
             + np.cos(ta)) * QV)
         return rv, vv
 
-    def __init__(self, bname, mname='Sol', mu=1.32712440041e20):
+    def __init__(self, bname, mname='Sun', mu=1.32712440041e20):
         """
         Args:
             bname: Name of the object which orbit around the central body
             mname: Name of the central body
-            mmu : Gravitational parameter (mu) of the central body
-                Default value is mu of the Sun.  
+            mu : Gravitational parameter (mu) of the central body
+                Default value is gravitational parameter of the Sun.  
                 
                 mu should be:
                 if Mc >> Mo
-                    mu = GMc
+                    mu = G*Mc
                 else
-                    mu = G(Mc + Mo)
+                    mu = G*(Mc + Mo)
 
-                where
+                where:
                     G: Newton's gravitational constant
                     Mc: mass of the central body
                     Mo: mass of the object
@@ -198,24 +198,24 @@ class TwoBodyOrbit:
         """Define the orbit by classical orbital elements
         
         Args:
-            epoch: Epoch
-            a:       semi-major axis
-            e:       eccentricity (should not be 1.0)
-            i:       inclination (degrees)
+            epoch:   Epoch
+            a:       Semi-major axis
+            e:       Eccentricity (should not be 1.0)
+            i:       Inclination (degrees)
             LoAN:    longitude of ascending node (degrees)
                      If inclination is zero, this value defines reference
                      longitude of AoP
-            AoP:     argument of periapsis (degrees)
+            AoP:     Argument of periapsis (degrees)
                      For a circular orbit, this value indicates a imaginary
                      periapsis.
             
-            TA:      true anomaly on epoch (degrees)
+            TA:      True anomaly on epoch (degrees)
                      For a circular orbit, the value defines angle from the 
                      imaginary periapsis defined by AoP
-            T:       periapsis passage time
+            T:       Periapsis passage time
                      for a circular orbit, the value defines passage time for
                      the imaginary periapsis defined by AoP
-            MA:      mean anomaly on epoch (degrees)
+            MA:      Mean anomaly on epoch (degrees)
                      For a hyperbolic trajectory, you cannot specify this 
                      argument
                      For a circular orbit, the value defines anomaly from
@@ -508,7 +508,7 @@ class TwoBodyOrbit:
         """Returns Classical orbital element
         
         Returns:
-            kepl: Dictionary of orbital elements.
+            kepl: Dictionary of orbital elements. Keys are as follows
                 'epoch': Epoch
                 'a': Semimajor axis
                 'e': Eccentricity
@@ -530,6 +530,9 @@ class TwoBodyOrbit:
                     For circular orbit, ma is the same to TAoE
                 'n': Mean motion in degrees (elliptic orbit only)
                 'P': Orbital period (elliptic orbit only)
+                
+                For a hyperbolic trajectory, values for keys 'MA', 'n', and 'P' 
+                are None for each
         """
         if not self._setOrb:
             raise(RuntimeError('Orbit has not been defined: TwoBodyOrbit'))
