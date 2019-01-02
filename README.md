@@ -90,15 +90,15 @@ A function to solve **Lambert's Problem**. From given initial position and termi
 * 室津義定, 宇宙航行力学, 宇宙工学の基礎I, 共立出版株式会社, Japan, 1993-1998
 
 ## Modification Log
-#### v1.0.0 January 4, 2019
-##### TwoBodyOrbit class
-* Initiating method was changed its argument name (mmu to mu)
-* Method **setOrbKepl** was added to **TwoBodyOrbit** class
-* Method **elmKepl** was changed its returning data; keys of dictionary were modified
+#### v1.0.0 January 2, 2019
+* ##### TwoBodyOrbit class
+  * Initiating method was changed its argument name (mmu to mu)
+  * Method **setOrbKepl** was added to **TwoBodyOrbit** class
+  * Method **elmKepl** was changed its returning data; keys of dictionary were modified
 
-##### lambert function
-* Function name was changed; from *solveGauss* to **lambert**
-* The argument "mu" became to have a default value
+* ##### lambert function
+  * Function name was changed; from *solveGauss* to **lambert**
+  * The argument "mu" became to have a default value
 
 #### v0.1.0 November 7, 2016
 * Initial release
